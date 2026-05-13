@@ -1,37 +1,10 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // 세션 갱신 (필수 — 제거 금지)
-  await supabase.auth.getUser()
-
-  // 로그인 필요 페이지 보호 (현재는 모두 공개, 추후 추가)
-  // if (!user && !request.nextUrl.pathname.startsWith('/login')) {
-  //   return NextResponse.redirect(new URL('/login', request.url))
-  // }
-
-  return supabaseResponse
+// @supabase/ssr이 Edge에서 node:fs/node:path를 참조하는 문제로
+// 세션 갱신은 클라이언트 측 onAuthStateChange에 위임한다.
+// 향후 라우트 보호가 필요하면 API route 레벨에서 처리.
+export function middleware(request: NextRequest) {
+  return NextResponse.next({ request })
 }
 
 export const config = {

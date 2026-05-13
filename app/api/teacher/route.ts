@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { MODEL } from '@/lib/anthropic'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 

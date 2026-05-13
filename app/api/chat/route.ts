@@ -10,7 +10,7 @@ import { createAdminClient } from '@/lib/supabase'
 import { INPUT_LIMIT, MODEL } from '@/lib/anthropic'
 import { checkRateLimit } from '@/lib/rate-limit'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 

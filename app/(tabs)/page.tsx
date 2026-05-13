@@ -33,6 +33,7 @@ type Action =
   | { type: 'SET_CORRECTION'; data: { needs_correction: boolean; correction_items: CorrectionItem[] } }
   | { type: 'DONE'; versions: TranslationVersions; recommended: string; cardId: string | null; card?: Card }
   | { type: 'ERROR'; message: string }
+  | { type: 'RESTORE'; messages: Message[] }
 
 const LOADING_ID = '__loading__'
 
@@ -110,6 +111,9 @@ function reducer(state: State, action: Action): State {
         ],
       }
 
+    case 'RESTORE':
+      return { ...state, messages: action.messages }
+
     default:
       return state
   }
@@ -132,6 +136,26 @@ export default function ChatPage() {
   const [detailCard, setDetailCard] = useState<Card | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  // Restore chat history from sessionStorage on mount (client-only, runs after hydration)
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('chat_messages')
+      if (saved) {
+        const messages = JSON.parse(saved) as Message[]
+        if (messages.length > 0) dispatch({ type: 'RESTORE', messages })
+      }
+    } catch {}
+  }, [])
+
+  // Persist non-loading messages to sessionStorage whenever messages change
+  useEffect(() => {
+    if (state.isLoading) return
+    try {
+      const toSave = state.messages.filter((m) => m.kind !== 'loading')
+      sessionStorage.setItem('chat_messages', JSON.stringify(toSave))
+    } catch {}
+  }, [state.messages, state.isLoading])
 
   useEffect(() => {
     const supabase = createBrowserSupabase()

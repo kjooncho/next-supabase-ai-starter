@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import {
   CULTURAL_CORRECTION_SYSTEM_PROMPT,
   CULTURAL_CORRECTION_TOOL,
@@ -31,33 +32,20 @@ export async function POST(req: Request) {
     )
   }
 
-  // 쿠키에서 유저 세션 확인
-  const cookieHeader = req.headers.get('cookie') ?? ''
-  const cookieMap = Object.fromEntries(
-    cookieHeader.split(';').map((c) => {
-      const idx = c.indexOf('=')
-      const name = c.slice(0, idx).trim()
-      const value = decodeURIComponent(c.slice(idx + 1))
-      return [name, value]
-    })
-  )
-
-  const supabaseEdge = createServerClient(
+  // next/headers cookies로 세션 읽기 (Node.js 런타임에서만 가능)
+  const cookieStore = await cookies()
+  const supabaseServer = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: () =>
-          Object.entries(cookieMap).map(([name, value]) => ({
-            name,
-            value: String(value),
-          })),
+        getAll: () => cookieStore.getAll(),
         setAll: () => {},
       },
     }
   )
 
-  const { data: { user } } = await supabaseEdge.auth.getUser()
+  const { data: { user } } = await supabaseServer.auth.getUser()
 
   // 로그인 유저 rate limit 확인
   if (user) {

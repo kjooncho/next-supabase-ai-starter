@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand */
+  --color-primary: #1a1f3d;
+  --color-accent: #e8541a;
+  --color-bg: #faf8f4;
+  --color-surface: #ffffff;
+
+  /* Semantic */
+  --color-success: #6b8f71;
+  --color-cultural: #f5a623;
+  --color-mnemonic: #9b59b6;
+  --color-real-use: #27ae60;
+  --color-error: #e74c3c;
+
+  /* Text */
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-tertiary: #9c9a92;
+
+  /* UI */
+  --color-tag-bg: #f0ede6;
+  --color-hairline: #e8e4dc;
+
+  /* Mastery */
+  --mastery-learning: #d4d0c5;
+  --mastery-mastered: #6b8f71;
+  --mastery-real-use: #27ae60;
+  --mastery-conquered: #e74c3c;
+
+  /* Chat bubbles */
+  --bubble-user: #1a1f3d;
+  --bubble-ai: #ffffff;
+  --bubble-grandma: #fef6ec;
+
+  /* STEP 번역 진행 색상 */
+  --step-0: #e8541a;
+  --step-1: #1a1f3d;
+  --step-2: #1a1f3d;
+  --step-3: #f5a623;
+  --step-4: #6b8f71;
+  --step-5: #9b59b6;
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--text-primary);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 타이포그래피 유틸리티 */
+.text-h1 { font-size: 24px; font-weight: 700; }
+.text-h2 { font-size: 20px; font-weight: 600; }
+.text-body-md { font-size: 16px; font-weight: 500; }
+.text-body { font-size: 14px; font-weight: 400; }
+.text-caption { font-size: 13px; font-weight: 400; }
+
+/* 일본어 폰트 */
+.font-jp { font-family: 'Noto Serif JP', serif; }

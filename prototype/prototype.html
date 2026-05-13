@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>My Niche · 毎日 — Prototype v0.1</title>
+
+<!-- Fonts: Noto Serif JP for display + system stack for body -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind via CDN (prototype only) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- React 18 + Babel for JSX -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+  :root {
+    /* ===== Brand color tokens (Design System Sheet 기준) ===== */
+    /* Logo & Primary */
+    --brand-primary: #1a1f3d;     /* Deep Navy — 메인 브랜드, 채팅 버블 (User) */
+    --brand-accent: #e8541a;      /* Vermillion — CTA, 강조 (Daruma) */
+
+    /* Backgrounds */
+    --bg-primary: #faf8f4;        /* Warm Off-white — 화면 배경 */
+    --surface: #ffffff;           /* White — 카드 배경 */
+
+    /* Semantic colors (시트의 12색) */
+    --success: #6b8f71;           /* Sage Green — 학습 진행, 활성 학습 */
+    --cultural-tip: #f5a623;      /* Amber — 문화 노트, 추천 표시 */
+    --mnemonic: #9b59b6;          /* Soft Purple — 니모닉 카드 */
+    --real-use: #27ae60;          /* Bright Green — 써봤어요 (실전 사용 기록) */
+    --map-pin: #e74c3c;           /* Red — 지도 핀 */
+
+    /* Text colors */
+    --ink-primary: #1a1a1a;       /* Text Primary */
+    --ink-secondary: #6b6b6b;     /* Text Secondary */
+    --ink-tertiary: #9c9a92;      /* Text Tertiary (보조 — 시트엔 없으나 UI 전반에 필요) */
+
+    /* Tag system */
+    --tag-bg: #f0ede6;            /* Tag Background */
+    --hairline: #e8e4dc;          /* 구분선 — 시트엔 명시 안 됨, 일관성 위해 정의 */
+
+    /* Mastery badge backgrounds (시트 ⑫ Mastery Badges 기준) */
+    --badge-learning: #d4d0c5;    /* 학습중 — 회색 톤 (시트 1번째 배지) */
+    --badge-mastered: #6b8f71;    /* 숙달완료 — Sage Green */
+    --badge-real-use: #27ae60;    /* 써봤어요 — Bright Green */
+    --badge-perfect: #e74c3c;     /* 완전정복 — Red */
+
+    /* Shadows */
+    --shadow-soft: 0 1px 3px rgba(26, 31, 61, 0.06), 0 1px 2px rgba(26, 31, 61, 0.04);
+    --shadow-card: 0 4px 12px rgba(26, 31, 61, 0.08);
+  }
+
+  * { -webkit-tap-highlight-color: transparent; }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-primary);
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink-primary);
+    overscroll-behavior: none;
+  }
+
+  .font-display {
+    font-family: 'Noto Serif JP', 'Noto Serif KR', serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* Daruma avatar — flat, no gradient */
+  .daruma-svg { width: 100%; height: 100%; }
+
+  /* Tab bar enter animation */
+  @keyframes slideUp {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .anim-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.0, 0.0, 0.2, 1);
+  }
+
+  /* Step reveal animation for translation */
+  @keyframes fadeInLeft {
+    from { transform: translateX(-12px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .anim-step-reveal {
+    animation: fadeInLeft 0.4s ease-out backwards;
+  }
+
+  /* Subtle paper texture for cards */
+  .paper-texture {
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(26, 31, 61, 0.015) 1px, transparent 0);
+    background-size: 16px 16px;
+  }
+
+  /* Loading dots */
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; }
+    40% { opacity: 1; }
+  }
+  .dot { animation: blink 1.4s infinite both; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* Modal animations */
+  @keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes modalSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-overlay {
+    animation: overlayFadeIn 0.25s ease-out;
+  }
+  .modal-content {
+    animation: modalSlideUp 0.35s cubic-bezier(0.0, 0.0, 0.2, 1);
+  }
+  /* Lock body scroll when modal open */
+  body.modal-open {
+    overflow: hidden;
+  }
+
+  /* Hide scrollbars on chip rows */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Focus visible for accessibility */
+  button:focus-visible, [role="button"]:focus-visible {
+    outline: 2px solid var(--brand-accent);
+    outline-offset: 2px;
+  }
+
+  /* ========================================
+     RESPONSIVE LAYOUT
+     ======================================== */
+
+  /* Mobile (default): full screen */
+  .app-frame {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    /* Use dvh for iOS Safari (avoids address bar issue) */
+    min-height: 100dvh;
+    margin: 0 auto;
+    background: var(--bg-primary);
+    position: relative;
+    /* Safe area for iOS notch/home indicator */
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Tab bar — same width as frame */
+  .tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 420px;
+    z-index: 30;
+    /* iOS home indicator safe area */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Layout wrapper for desktop side panel */
+  .layout-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  /* Tablet: card-style frame */
+  @media (min-width: 640px) {
+    body {
+      background: #f0ede5;
+    }
+    .layout-wrapper {
+      padding: 24px;
+      align-items: center;
+    }
+    .app-frame {
+      min-height: 760px;
+      max-height: calc(100vh - 48px);
+      max-height: calc(100dvh - 48px);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 
+        0 0 0 1px var(--hairline),
+        0 10px 40px rgba(26, 31, 61, 0.08);
+      padding-top: 0; /* card style — no safe area in card */
+    }
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      padding-bottom: 0;
+    }
+  }
+
+  /* Desktop: side panel with verification checklist */
+  @media (min-width: 1024px) {
+    .layout-wrapper {
+      gap: 40px;
+      align-items: center;
+    }
+    .side-panel {
+      display: block;
+      max-width: 320px;
+      flex-shrink: 0;
+    }
+  }
+
+  /* Side panel — hidden on mobile/tablet */
+  .side-panel {
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+// ============================================================
+// FIXTURE DATA — schemas.ts와 호환되는 형태
+// ============================================================
+
+const FIXTURES = {
+  user: {
+    display_name: "지원",
+    level: "N3",
+    life_situations: ["육아", "직장"],
+  },
+
+  // 채팅 입력 → 5단계 번역 결과 (실제 Claude 응답 모방)
+  translations: {
+    "우리 엄마가 일본에 오세요": {
+      step0_cultural: {
+        needs_correction: true,
+        detected: "우리 엄마 / 오세요",
+        corrected_to: "母 / 来ます",
+        correction_type: "family_title",
+        reason: "타인에게 자기 가족을 말할 때, 일본은 겸양형(母)을 쓰고 존경어를 안 붙여요. '우리 엄마(お母さん)' 그대로 쓰면 '남의 어머니'라는 뜻이 돼서 어색해져요.",
+        severity: "high",
+      },
+      step1_structure: [
+        { korean: "우리 엄마가", japanese: "母が", marker_color: "navy" },
+        { korean: "일본에", japanese: "日本に", marker_color: "orange" },
+        { korean: "오세요", japanese: "来ます", marker_color: "green" },
+      ],
+      step2_versions: {
+        casual: "今度、母が日本に来るんですよ",
+        polite: "母が日本に来ます",
+        formal: "今度、母が来日することになりまして",
+      },
+      step2_vocabulary: {
+        casual: [],
+        polite: [],
+        formal: [
+          { jp: "来日", reading: "らいにち", kr: "외국인이 일본에 옴", note: "공식 자리에서 외국인 가족·손님의 방일을 표현할 때 사용" },
+          { jp: "～することになりまして", reading: "～する koto ni narimashite", kr: "~하게 되어서", note: "결정·예정 사항을 정중하게 보고할 때 쓰는 비즈니스 정형 표현" },
+        ],
+      },
+      step3_grammar: [
+        {
+          point_name: "うちの母 vs お母さん",
+          tag: "#명사+の",
+          explanation: "타인에게 자기 어머니를 말할 때는 '母'(haha), 자기 어머니를 부를 때나 타인의 어머니는 'お母さん'(okaasan). 한국어 '우리 엄마'를 그대로 'うちのお母さん'으로 옮기면 일본어로는 '남의 어머니'가 돼요.",
+        },
+        {
+          point_name: "来ます vs いらっしゃいます",
+          tag: "#て형",
+          explanation: "자기 가족에겐 존경어(いらっしゃる) 안 써요. '엄마가 오세요' 같은 한국어 존댓말 습관이 일본에선 '내가 우리 엄마를 높이는 이상한 사람'으로 들려요.",
+        },
+      ],
+      step4_culture: "일본의 가족호칭은 '안(우리)'과 '밖(타인)' 구분이 매우 엄격해요. 타인 앞에서 자기 가족은 항상 겸양형, 그리고 존경어 안 씁니다. 처음엔 어색하지만 보육원·직장에서 한 번씩 써보면 빠르게 익숙해져요.",
+      step5_etymology: {
+        kanji: "母",
+        reading: "はは / お母さん",
+        story: "母(はは)는 음독, お母さん(おかあさん)은 친근형. 비즈니스/공식에선 '母'만 단독으로 쓰는 게 표준이에요.",
+        mnemonic: "母(모) → 한국 한자 그대로! 단, 일본은 '엄마'를 두 단어로 구분: 母(겸양) vs お母さん(친근).",
+      },
+      recommended_version: "polite",
+      has_mnemonic: true,
+    },
+    
+    "오늘 날씨 정말 좋네요": {
+      step0_cultural: {
+        needs_correction: false,
+        reason: "직역해도 자연스러운 일상 표현이에요.",
+      },
+      step1_structure: [
+        { korean: "오늘", japanese: "今日は", marker_color: "navy" },
+        { korean: "날씨", japanese: "天気", marker_color: "orange" },
+        { korean: "정말 좋네요", japanese: "本当にいいですね", marker_color: "green" },
+      ],
+      step2_versions: {
+        casual: "今日、天気いいね",
+        polite: "今日は天気が本当にいいですね",
+        formal: "本日は天候に恵まれましたね",
+      },
+      step2_vocabulary: {
+        casual: [],
+        polite: [],
+        formal: [
+          { jp: "本日", reading: "ほんじつ", kr: "오늘 (격식)", note: "今日(きょう)의 격식체. 비즈니스 메일·공식 인사·발표 첫머리에 사용" },
+          { jp: "天候", reading: "てんこう", kr: "날씨·기상 (격식)", note: "天気보다 한 단계 격식 있음. 뉴스·기상예보·문서에서 표준" },
+          { jp: "恵まれる", reading: "めぐまれる", kr: "축복받다·혜택받다", note: "수동형으로 '좋은 조건이 주어졌다'는 뉘앙스. '날씨가 좋다'를 우아하게 표현" },
+        ],
+      },
+      step3_grammar: [
+        {
+          point_name: "~ですね 의 어감",
+          tag: "#명사+の",
+          explanation: "~ですね는 동의를 구하는 부드러운 어미. 일본인 동료에게 인사 대신 쓰면 자연스럽게 대화 시작이 가능해요.",
+        },
+      ],
+      step4_culture: "일본은 날씨 인사가 인사말의 표준이에요. 'おはようございます' 다음에 '今日はいい天気ですね' 같은 한 마디가 매너로 여겨져요.",
+      recommended_version: "polite",
+      has_mnemonic: false,
+    },
+
+    "이 디자인 수정해주세요": {
+      step0_cultural: {
+        needs_correction: true,
+        detected: "수정해주세요",
+        corrected_to: "修正していただけますでしょうか",
+        correction_type: "keigo",
+        reason: "직장 내 부탁은 '~ていただけますでしょうか' 형식이 표준. '~してください'는 약간 명령조로 들릴 수 있어요.",
+        severity: "medium",
+      },
+      step1_structure: [
+        { korean: "이 디자인", japanese: "このデザイン", marker_color: "navy" },
+        { korean: "수정해주세요", japanese: "修正していただけますでしょうか", marker_color: "orange" },
+      ],
+      step2_versions: {
+        casual: "このデザイン、ちょっと直してくれる?",
+        polite: "このデザイン、修正していただけますか?",
+        formal: "このデザイン、修正していただけますでしょうか",
+      },
+      step2_vocabulary: {
+        casual: [],
+        polite: [
+          { jp: "修正", reading: "しゅうせい", kr: "수정", note: "直す(なおす)는 일상어, 修正은 비즈니스·기술 문맥의 표준 표현" },
+          { jp: "～ていただけますか", reading: "~te itadakemasu ka", kr: "~해 주시겠어요?", note: "謙譲語(けんじょうご). 상대를 높이는 부탁 표현의 정중 기본형" },
+        ],
+        formal: [
+          { jp: "～ていただけますでしょうか", reading: "~te itadakemasu deshou ka", kr: "~해 주실 수 있을까요?", note: "～でしょうか를 붙여 한 단계 더 부드럽게. 거래처·상사에게 부탁할 때 표준" },
+        ],
+      },
+      step3_grammar: [
+        {
+          point_name: "~ていただけますか vs ~ていただけますでしょうか",
+          tag: "#て형",
+          explanation: "~ていただけますか도 정중하지만, ~でしょうか를 붙이면 한 단계 더 부드러워져요. 직장 상사나 거래처에게는 でしょうか 권장.",
+        },
+      ],
+      step4_culture: "일본 직장은 부탁의 강도를 어미로 조절해요. 친한 동료에게도 '~してください'보다 '~していただけますか'가 자연스러운 경우가 많아요.",
+      recommended_version: "formal",
+      has_mnemonic: false,
+    },
+  },
+
+  // 내 카드 mock
+  cards: [
+    {
+      id: "c1",
+      card_type: "sentence",
+      learning_status: "learning",
+      has_real_use: true,
+      real_use_count: 2,
+      payload: {
+        korean_input: "우리 엄마가 일본에 오세요",
+        step2_versions: { casual: "今度、母が日本に来るんですよ" },
+        has_mnemonic: true,
+      },
+      tags: ["소셜", "가족호칭", "니모닉있음"],
+      created_at: "2026-05-08",
+    },
+    {
+      id: "c2",
+      card_type: "sentence",
+      learning_status: "mastered",
+      has_real_use: true,
+      real_use_count: 5,
+      payload: {
+        korean_input: "이 디자인 수정해주세요",
+        step2_versions: { casual: "修正していただけますでしょうか" },
+        has_mnemonic: false,
+      },
+      tags: ["직장", "경어"],
+      created_at: "2026-05-05",
+    },
+    {
+      id: "c3",
+      card_type: "calendar",
+      learning_status: "learning",
+      has_real_use: false,
+      real_use_count: 0,
+      payload: {
+        event_name_jp: "こどもの日",
+        event_name_kr: "어린이날",
+        event_date: "2026-05-05",
+        event_emoji: "🎏",
+      },
+      tags: ["달력", "5월"],
+      created_at: "2026-05-04",
+    },
+    {
+      id: "c4",
+      card_type: "episode",
+      learning_status: "learning",
+      has_real_use: false,
+      real_use_count: 0,
+      payload: {
+        domain: "지역공동체",
+        scene: "동네 할머니가 回覧板을 들고 왔다",
+      },
+      tags: ["생활", "지역공동체"],
+      created_at: "2026-05-02",
+    },
+    {
+      id: "c5",
+      card_type: "sentence",
+      learning_status: "learning",
+      has_real_use: false,
+      real_use_count: 0,
+      payload: {
+        korean_input: "선물 가져왔어요 별 거 아니에요",
+        step2_versions: { casual: "つまらないものですが、お持ちしました" },
+        has_mnemonic: false,
+      },
+      tags: ["소셜", "겸양"],
+      created_at: "2026-05-01",
+    },
+  ],
+
+  // 생활 탭 에피소드
+  episodes: [
+    {
+      id: "e1",
+      domain: "지역공동체",
+      domain_emoji: "🏮",
+      episode_number: 2,
+      title_kr: "回覧板이 뭐죠?",
+      title_jp: "回覧板って、なんだろう？",
+      scene_short: "동네 할머니가 들고 온 빛바랜 노트",
+      duration_min: 6,
+      tags: ["Phase2-실용", "지역공동체"],
+    },
+    {
+      id: "e2",
+      domain: "음식계절",
+      domain_emoji: "🌸",
+      episode_number: 1,
+      title_kr: "花見 — 벚꽃 아래 도시락",
+      title_jp: "お花見の楽しみ方",
+      scene_short: "회사 동료가 '今度お花見しよう'라고 한다",
+      duration_min: 5,
+      tags: ["Phase1-기초", "음식계절"],
+    },
+    {
+      id: "e3",
+      domain: "돈제도",
+      domain_emoji: "💴",
+      episode_number: 1,
+      title_kr: "ふるさと納税 — 고기 받는 절세 제도",
+      title_jp: "ふるさと納税って、なんだろう？",
+      scene_short: "연말 정산 시즌, 동료가 '今年もふるさと納税やった?'",
+      duration_min: 7,
+      tags: ["Phase3-심화", "돈제도", "니모닉있음"],
+    },
+  ],
+
+  // 캘린더 시즌 배너
+  calendar_banner: {
+    event_name_jp: "こどもの日",
+    event_name_kr: "어린이날",
+    event_date: "2026-05-05",
+    days_left: -5,
+    description: "한국 어린이날과 같은 날, 그러나 일본은 남자아이 축원의 날",
+  },
+};
+
+// ============================================================
+// DARUMA AVATAR — 5 expression variants
+// ============================================================
+function DarumaAvatar({ mood = "default", size = 80 }) {
+  // Body, face, eyebrows are constant. Eyes/mouth change per mood.
+  const moods = {
+    default: {
+      eyebrowL: "M 35 50 Q 45 45 52 50",
+      eyebrowR: "M 68 50 Q 75 45 85 50",
+      eyeL: "M 38 62 Q 43 65 48 62",
+      eyeR: "M 72 62 Q 77 65 82 62",
+      mouth: "M 53 78 Q 60 82 67 78",
+      extras: null,
+    },
+    joy: {
+      eyebrowL: "M 35 47 Q 45 42 52 47",
+      eyebrowR: "M 68 47 Q 75 42 85 47",
+      eyeL: "M 38 64 L 43 60 L 48 64",
+      eyeR: "M 72 64 L 77 60 L 82 64",
+      mouth: "M 50 76 Q 60 86 70 76",
+      extras: (
+        <>
+          <circle cx="35" cy="78" r="3" fill="#f5a623" opacity="0.5"/>
+          <circle cx="85" cy="78" r="3" fill="#f5a623" opacity="0.5"/>
+        </>
+      ),
+    },
+    curious: {
+      eyebrowL: "M 35 50 Q 45 45 52 50",
+      eyebrowR: "M 68 47 Q 75 41 85 45",
+      eyeL: null, // dot
+      eyeR: null,
+      mouth: null,
+      extras: (
+        <>
+          <circle cx="43" cy="62" r="2.5" fill="#1a1f3d"/>
+          <circle cx="77" cy="62" r="2.5" fill="#1a1f3d"/>
+          <ellipse cx="60" cy="80" rx="3" ry="4" fill="none" stroke="#1a1f3d" strokeWidth="2"/>
+          <text x="100" y="50" fontSize="22" fill="#e8541a" fontWeight="500">?</text>
+        </>
+      ),
+    },
+    encouraging: {
+      eyebrowL: "M 35 50 Q 45 47 52 50",
+      eyebrowR: "M 68 50 Q 75 47 85 50",
+      eyeL: "M 38 63 Q 43 66 48 63",
+      eyeR: "M 72 63 Q 77 66 82 63",
+      mouth: "M 53 80 Q 60 84 67 80",
+      extras: (
+        <>
+          <circle cx="100" cy="40" r="3" fill="#f5a623"/>
+          <line x1="100" y1="32" x2="100" y2="36" stroke="#f5a623" strokeWidth="1.5"/>
+          <line x1="100" y1="44" x2="100" y2="48" stroke="#f5a623" strokeWidth="1.5"/>
+          <line x1="92" y1="40" x2="96" y2="40" stroke="#f5a623" strokeWidth="1.5"/>
+          <line x1="104" y1="40" x2="108" y2="40" stroke="#f5a623" strokeWidth="1.5"/>
+        </>
+      ),
+    },
+    thinking: {
+      eyebrowL: "M 35 52 Q 45 48 52 51",
+      eyebrowR: "M 68 51 Q 75 48 85 52",
+      eyeL: null, // line
+      eyeR: null,
+      mouth: null,
+      extras: (
+        <>
+          <line x1="38" y1="63" x2="48" y2="63" stroke="#1a1f3d" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="72" y1="63" x2="82" y2="63" stroke="#1a1f3d" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="55" y1="80" x2="65" y2="80" stroke="#1a1f3d" strokeWidth="2" strokeLinecap="round"/>
+          <circle cx="100" cy="50" r="2" fill="#1a1f3d" opacity="0.4"/>
+          <circle cx="108" cy="46" r="2.5" fill="#1a1f3d" opacity="0.6"/>
+          <circle cx="116" cy="42" r="3" fill="#1a1f3d" opacity="0.8"/>
+        </>
+      ),
+    },
+  };
+
+  const m = moods[mood] || moods.default;
+
+  return (
+    <svg viewBox="0 0 130 140" width={size} height={size * (140/130)} className="daruma-svg">
+      {/* Body */}
+      <ellipse cx="60" cy="80" rx="50" ry="55" fill="#e8541a" stroke="#1a1f3d" strokeWidth="2"/>
+      {/* Face */}
+      <ellipse cx="60" cy="65" rx="40" ry="32" fill="#faf8f4"/>
+      {/* Eyebrows */}
+      <path d={m.eyebrowL} fill="none" stroke="#1a1f3d" strokeWidth="3" strokeLinecap="round"/>
+      <path d={m.eyebrowR} fill="none" stroke="#1a1f3d" strokeWidth="3" strokeLinecap="round"/>
+      {/* Eyes (if path-based) */}
+      {m.eyeL && <path d={m.eyeL} fill="none" stroke="#1a1f3d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>}
+      {m.eyeR && <path d={m.eyeR} fill="none" stroke="#1a1f3d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>}
+      {/* Mouth */}
+      {m.mouth && <path d={m.mouth} fill="none" stroke="#1a1f3d" strokeWidth="2" strokeLinecap="round"/>}
+      {/* Extras (eyes for special moods, accents) */}
+      {m.extras}
+    </svg>
+  );
+}
+
+// ============================================================
+// ICONS — minimal SVG inline
+// ============================================================
+const ICONS = {
+  chat: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+    </svg>
+  ),
+  calendar: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+  ),
+  life: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+      <line x1="8" y1="2" x2="8" y2="18"/>
+      <line x1="16" y1="6" x2="16" y2="22"/>
+    </svg>
+  ),
+  cards: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="14" height="18" rx="2"/>
+      <path d="M7 7h6M7 11h6M7 15h4"/>
+      <path d="M21 8v11a2 2 0 0 1-2 2H10"/>
+    </svg>
+  ),
+  send: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    </svg>
+  ),
+  bookmark: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+    </svg>
+  ),
+  check: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  ),
+};
+
+// ============================================================
+// GRANDMA AVATAR — 隣のおばあちゃん (생활탭 캐릭터)
+// 디자인 시스템 시트의 AI-Grandma 사양:
+// 회색 머리 + 안경 + 따뜻한 표정 + 베이지/연한 분홍 의상
+// ============================================================
+function GrandmaAvatar({ size = 80 }) {
+  return (
+    <svg viewBox="0 0 130 140" width={size} height={size * (140/130)}>
+      {/* 어깨/옷 */}
+      <ellipse cx="65" cy="135" rx="55" ry="20" fill="#a87a6b" />
+      {/* 옷깃 */}
+      <path d="M 30 130 Q 65 115 100 130" fill="#8b6353" />
+      {/* 얼굴 (둥근 노년 여성) */}
+      <ellipse cx="65" cy="80" rx="38" ry="42" fill="#f4d4b8" />
+      {/* 머리 (회색, 단정한 단발 또는 묶음) */}
+      <path d="M 30 70 Q 30 38 65 35 Q 100 38 100 70 Q 100 60 95 55 Q 88 45 65 43 Q 42 45 35 55 Q 30 60 30 70 Z" fill="#c5c0b8" />
+      {/* 머리 디테일 (옆머리) */}
+      <ellipse cx="32" cy="78" rx="6" ry="14" fill="#c5c0b8" />
+      <ellipse cx="98" cy="78" rx="6" ry="14" fill="#c5c0b8" />
+      {/* 안경 (둥근 형태) */}
+      <circle cx="50" cy="78" r="9" fill="none" stroke="#3d3633" strokeWidth="2"/>
+      <circle cx="80" cy="78" r="9" fill="none" stroke="#3d3633" strokeWidth="2"/>
+      <line x1="59" y1="78" x2="71" y2="78" stroke="#3d3633" strokeWidth="2"/>
+      {/* 눈 (안경 안, 부드러운 곡선) */}
+      <path d="M 47 78 Q 50 80 53 78" fill="none" stroke="#3d3633" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M 77 78 Q 80 80 83 78" fill="none" stroke="#3d3633" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* 볼 (홍조) */}
+      <ellipse cx="42" cy="92" rx="5" ry="3" fill="#e8a89a" opacity="0.5"/>
+      <ellipse cx="88" cy="92" rx="5" ry="3" fill="#e8a89a" opacity="0.5"/>
+      {/* 입 (부드러운 미소) */}
+      <path d="M 58 100 Q 65 105 72 100" fill="none" stroke="#8b6353" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// ============================================================
+// HARU AVATAR — 선생님 모드의 학습 동반자
+// 디자인 시스템 시트엔 정의 안 됐지만 Image 1(08.png)에 등장
+// 짧은 검은 머리 + 후드티 + 펜 들고 있는 소년
+// 미니 버전 (40px 이하): 단순화된 얼굴만
+// ============================================================
+function HaruAvatar({ size = 40 }) {
+  // 작은 사이즈에선 얼굴 + 후드만 단순하게
+  return (
+    <svg viewBox="0 0 120 130" width={size} height={size * (130/120)}>
+      {/* 후드 그림자 (배경) */}
+      <ellipse cx="60" cy="105" rx="50" ry="25" fill="#5a4a3a" />
+      {/* 후드 (베이지) */}
+      <path d="M 18 80 Q 18 100 60 110 Q 102 100 102 80 L 102 70 Q 102 55 60 55 Q 18 55 18 70 Z" fill="#d4c5a8" />
+      <ellipse cx="60" cy="115" rx="35" ry="8" fill="#c4b598" />
+      {/* 머리 (검은색, 자연스러운 헤어) */}
+      <path d="M 25 55 Q 25 28 60 25 Q 95 28 95 55 Q 95 45 90 40 Q 85 32 60 30 Q 35 32 30 40 Q 25 45 25 55 Z" fill="#2a2520" />
+      {/* 머리 디테일 (앞머리) */}
+      <path d="M 35 45 Q 50 30 65 38 M 65 38 Q 75 35 85 50" fill="none" stroke="#2a2520" strokeWidth="3" strokeLinecap="round" />
+      {/* 얼굴 */}
+      <ellipse cx="60" cy="65" rx="30" ry="32" fill="#f5d6b8" />
+      {/* 귀 */}
+      <ellipse cx="32" cy="68" rx="4" ry="6" fill="#e8c0a0" />
+      <ellipse cx="88" cy="68" rx="4" ry="6" fill="#e8c0a0" />
+      {/* 눈 (큰 갈색) */}
+      <circle cx="48" cy="65" r="4" fill="#3d2817" />
+      <circle cx="72" cy="65" r="4" fill="#3d2817" />
+      {/* 눈 하이라이트 */}
+      <circle cx="49.5" cy="63.5" r="1.2" fill="#fff" />
+      <circle cx="73.5" cy="63.5" r="1.2" fill="#fff" />
+      {/* 눈썹 */}
+      <path d="M 42 56 Q 48 53 54 56" fill="none" stroke="#2a2520" strokeWidth="2" strokeLinecap="round" />
+      <path d="M 66 56 Q 72 53 78 56" fill="none" stroke="#2a2520" strokeWidth="2" strokeLinecap="round" />
+      {/* 입 (살짝 벌린 표정) */}
+      <ellipse cx="60" cy="80" rx="3" ry="2.5" fill="#8b4a3a" />
+      {/* 볼 홍조 */}
+      <ellipse cx="40" cy="76" rx="4" ry="2.5" fill="#f4a890" opacity="0.5" />
+      <ellipse cx="80" cy="76" rx="4" ry="2.5" fill="#f4a890" opacity="0.5" />
+    </svg>
+  );
+}
+
+// ============================================================
+// BOOKMARK ICON — 카드 좌상단 북마크 (Image 4 사양)
+// ============================================================
+function BookmarkIcon({ filled = false, size = 16, color = "var(--ink-tertiary)" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+    </svg>
+  );
+}
+
+// ============================================================
+// SAKURA STAMP — 카드 우상단 벚꽃 도장 (Image 4 사양)
+// 일본 인장 스타일, 분홍/연한 빨강
+// ============================================================
+function SakuraStamp({ size = 32 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
+      {/* 도장 외곽 원 (살짝 비대칭, 손맛) */}
+      <circle cx="20" cy="20" r="16" fill="#f4a8b8" opacity="0.85" />
+      {/* 벚꽃 5개 꽃잎 */}
+      <g transform="translate(20, 20)">
+        {[0, 72, 144, 216, 288].map((angle, i) => (
+          <ellipse 
+            key={i}
+            cx="0" cy="-8" 
+            rx="3.5" ry="6"
+            fill="#fff" opacity="0.95"
+            transform={`rotate(${angle})`}
+          />
+        ))}
+        {/* 꽃 중심 */}
+        <circle cx="0" cy="0" r="2.5" fill="#e8541a" />
+      </g>
+    </svg>
+  );
+}
+
+// ============================================================
+// LOGO — 毎日 + 도장 인장 (Image 5/6/7 헤더 통일)
+// ============================================================
+function Logo({ size = 32 }) {
+  return (
+    <div className="flex items-center gap-2">
+      {/* 빨간 도장 인장 SVG */}
+      <svg width={size} height={size} viewBox="0 0 40 40">
+        <defs>
+          <filter id="paperTexture" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" />
+            <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.15 0"/>
+            <feComposite in2="SourceGraphic" operator="in"/>
+          </filter>
+        </defs>
+        {/* 인장 외곽 (살짝 비대칭으로 손맛) */}
+        <circle cx="20" cy="20" r="17" fill="#c0421f" />
+        <circle cx="20" cy="20" r="17" fill="#c0421f" filter="url(#paperTexture)" />
+        {/* 毎 자 단순화 표현 (또는 단순 점) */}
+        <text x="20" y="26" textAnchor="middle" fontSize="14" fill="#faf8f4" fontFamily="Noto Serif JP" fontWeight="700">毎</text>
+      </svg>
+      {/* 한자 로고 */}
+      <span className="font-display text-lg" style={{ color: "var(--brand-primary)", letterSpacing: "0.02em" }}>毎日</span>
+    </div>
+  );
+}
+
+// ============================================================
+// STREAK INDICATOR — 🔥 12일 (헤더 우상단)
+// ============================================================
+function StreakIndicator({ days }) {
+  return (
+    <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: "rgba(232, 84, 26, 0.08)" }}>
+      <span className="text-sm">🔥</span>
+      <span className="text-xs font-medium" style={{ color: "var(--brand-accent)" }}>{days}일</span>
+    </div>
+  );
+}
+
+// ============================================================
+// USER AVATAR — 헤더 우상단 (Image 5/6/7)
+// ============================================================
+function UserAvatar({ size = 28 }) {
+  // 시트엔 사용자 아바타 사진이 있지만, MVP에선 이니셜 + 배경색
+  return (
+    <div 
+      className="rounded-full flex items-center justify-center text-xs font-medium"
+      style={{ 
+        width: size, 
+        height: size,
+        background: "linear-gradient(135deg, #f5a623 0%, #e8541a 100%)",
+        color: "#fff"
+      }}
+    >
+      지
+    </div>
+  );
+}
+
+// ============================================================
+// SHARED HEADER — 모든 메인 화면 공통
+// ============================================================
+function AppHeader({ centerLabel, streakDays = 12 }) {
+  return (
+    <header 
+      className="flex items-center justify-between px-4 py-3 border-b sticky top-0 z-20"
+      style={{ borderColor: "var(--hairline)", background: "rgba(250, 248, 244, 0.95)", backdropFilter: "blur(8px)" }}
+    >
+      <Logo size={28} />
+      {centerLabel && (
+        <div className="absolute left-1/2 -translate-x-1/2 font-medium text-sm" style={{ color: "var(--brand-primary)" }}>
+          {centerLabel}
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <StreakIndicator days={streakDays} />
+        <UserAvatar />
+      </div>
+    </header>
+  );
+}
+
+// ============================================================
+// TAB BAR
+// ============================================================
+function TabBar({ active, onChange }) {
+  const tabs = [
+    { id: "chat", label: "채팅", icon: ICONS.chat },
+    { id: "calendar", label: "달력", icon: ICONS.calendar },
+    { id: "life", label: "생활", icon: ICONS.life },
+    { id: "deck", label: "내 카드", icon: ICONS.cards },
+  ];
+
+  return (
+    <nav className="tab-bar bg-white border-t border-[#e8e4dc]">
+      <div className="flex h-14">
+        {tabs.map((t) => {
+          const isActive = active === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onChange(t.id)}
+              className="flex-1 flex flex-col items-center justify-center gap-0.5 relative"
+              style={{ color: isActive ? "var(--brand-accent)" : "var(--ink-tertiary)" }}
+            >
+              {isActive && (
+                <span 
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                  style={{ background: "var(--brand-accent)" }}
+                />
+              )}
+              {t.icon}
+              <span className="text-[10px]" style={{ fontWeight: isActive ? 500 : 400 }}>
+                {t.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+// ============================================================
+// CHAT TAB — 5단계 딥 번역
+// ============================================================
+function ChatTab({ onSaveCard, cards }) {
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      type: "greeting",
+      text: "오늘은 무슨 일본어가 궁금하세요?",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const scrollRef = useRef(null);
+
+  const examples = Object.keys(FIXTURES.translations);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  const handleSubmit = (text) => {
+    const query = (text || input).trim();
+    if (!query) return;
+
+    setMessages((prev) => [...prev, { role: "user", type: "text", text: query }]);
+    setInput("");
+    setIsLoading(true);
+
+    // Mock latency
+    setTimeout(() => {
+      const result = FIXTURES.translations[query] || FIXTURES.translations[examples[0]];
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", type: "translation", query, result },
+      ]);
+      setIsLoading(false);
+      setActiveStep(0);
+    }, 1200);
+  };
+
+  return (
+    <div className="flex flex-col h-full pb-14">
+      <AppHeader centerLabel="My Niche" />
+
+      {/* Season banner — Image 7 main 화면 디자인 */}
+      <div className="px-4 pt-3">
+        <div 
+          className="rounded-full p-2.5 flex items-center justify-between cursor-pointer transition-colors hover:opacity-90"
+          style={{ background: "rgba(107, 143, 113, 0.12)", border: "0.5px solid rgba(107, 143, 113, 0.3)" }}
+        >
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-base flex-shrink-0">🌿</span>
+            <div className="text-[11px] flex-1 min-w-0 truncate" style={{ color: "var(--success)" }}>
+              <span className="opacity-70">이번 주 |</span>
+              <span className="mx-1.5 font-display font-medium">母の日</span>
+              <span className="opacity-70">다가옵니다 → 표현 배우기</span>
+            </div>
+          </div>
+          <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--success)" }}>
+            <span className="text-white text-xs">→</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Category filter — Image 7 spec, 7개 */}
+      <div className="px-4 pt-3 pb-1">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+          {["전체", "직장", "육아", "일상", "소셜", "생활필수", "문화"].map((cat) => {
+            const isActive = cat === "전체";
+            return (
+              <button
+                key={cat}
+                className="flex-shrink-0 px-3 py-1.5 text-xs rounded-full transition-colors"
+                style={{
+                  background: isActive ? "var(--brand-primary)" : "var(--surface)",
+                  color: isActive ? "#fff" : "var(--ink-secondary)",
+                  border: isActive ? "none" : "0.5px solid var(--hairline)",
+                  fontWeight: isActive ? 500 : 400,
+                }}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {messages.map((m, i) => (
+          <Message key={i} message={m} onSaveCard={onSaveCard} activeStep={activeStep} setActiveStep={setActiveStep}/>
+        ))}
+        {isLoading && (
+          <div className="flex items-end gap-2 anim-slide-up">
+            <div className="w-8 h-8 flex-shrink-0">
+              <DarumaAvatar mood="thinking" size={32} />
+            </div>
+            <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-sm shadow-[var(--shadow-soft)] flex-1 max-w-[80%]">
+              <div className="flex items-center gap-1.5 text-[11px] mb-1">
+                <span style={{ color: "var(--success)" }}>STEP 1 ✓</span>
+                <span className="text-[#9c9a92]">→</span>
+                <span style={{ color: "var(--success)" }}>STEP 2 ✓</span>
+                <span className="text-[#9c9a92]">→</span>
+                <span style={{ color: "var(--brand-accent)" }}>
+                  STEP 3 진행 중
+                  <span className="dot inline-block ml-1">.</span>
+                  <span className="dot inline-block">.</span>
+                  <span className="dot inline-block">.</span>
+                </span>
+              </div>
+              <div className="text-[10px] text-[#9c9a92]">번역 결과를 준비하고 있어요</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Example chips (when only greeting) */}
+      {messages.length === 1 && !isLoading && (
+        <div className="px-4 pb-2">
+          <div className="text-[11px] text-[#9c9a92] mb-2">아래 예시를 탭해서 시작해보세요</div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {examples.map((ex, i) => (
+              <button
+                key={i}
+                onClick={() => handleSubmit(ex)}
+                className="flex-shrink-0 px-3 py-2 text-xs bg-white border border-[#e8e4dc] rounded-full hover:border-[#1a1f3d] transition-colors"
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recent saved cards — Image 7 horizontal scroll */}
+      {cards && cards.length > 0 && messages.length > 1 && (
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-1.5 mb-2 text-[10px] text-[#9c9a92]">
+            <span>✨</span>
+            <span className="uppercase tracking-wider">최근 저장</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {cards.slice(0, 5).map((card) => (
+              <div 
+                key={card.id}
+                className="flex-shrink-0 w-32 bg-white rounded-xl p-2.5 border border-[#e8e4dc]"
+              >
+                <div className="font-display text-xs leading-tight mb-1.5 truncate" style={{ color: "var(--brand-primary)" }}>
+                  {card.card_type === "sentence" 
+                    ? (card.payload.step2_versions?.casual || card.payload.korean_input)
+                    : card.card_type === "calendar"
+                    ? card.payload.event_name_jp
+                    : card.payload.scene}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] truncate" style={{ color: "var(--ink-tertiary)" }}>
+                    {card.tags?.[0] && `#${card.tags[0]}`}
+                  </span>
+                  <MasteryBadge status={card.learning_status} hasRealUse={card.has_real_use} size="sm" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input */}
+      <div className="px-4 py-3 border-t border-[#e8e4dc] bg-white">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="flex gap-2 items-center">
+          {/* Attach clip icon */}
+          <button
+            type="button"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#9c9a92] hover:text-[#1a1a1a] transition-colors"
+            title="첨부 (이미지·파일)"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="오늘 하고 싶은 말을 한국어로..."
+            rows="1"
+            className="flex-1 resize-none px-4 py-2.5 bg-[#faf8f4] border border-[#e8e4dc] rounded-2xl text-sm focus:outline-none focus:border-[#1a1f3d] transition-colors"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
+          />
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white transition-opacity disabled:opacity-30"
+            style={{ background: "var(--brand-accent)" }}
+          >
+            {ICONS.send}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MESSAGE COMPONENT
+// ============================================================
+function Message({ message, onSaveCard, activeStep, setActiveStep }) {
+  if (message.role === "user") {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[80%] bg-[#1a1f3d] text-white px-4 py-2.5 rounded-2xl rounded-br-sm text-sm">
+          {message.text}
+        </div>
+      </div>
+    );
+  }
+
+  if (message.type === "greeting") {
+    return (
+      <div className="flex items-end gap-2 anim-slide-up">
+        <div className="w-8 h-8 flex-shrink-0">
+          <DarumaAvatar mood="default" size={32} />
+        </div>
+        <div className="bg-white px-4 py-2.5 rounded-2xl rounded-bl-sm text-sm shadow-[var(--shadow-soft)] max-w-[80%]">
+          {message.text}
+        </div>
+      </div>
+    );
+  }
+
+  if (message.type === "translation") {
+    return <TranslationBlock query={message.query} result={message.result} onSaveCard={onSaveCard}/>;
+  }
+
+  return null;
+}
+
+// ============================================================
+// TRANSLATION BLOCK — 5단계 딥 번역 결과
+// ============================================================
+function TranslationBlock({ query, result, onSaveCard }) {
+  const [activeVersion, setActiveVersion] = useState(result.recommended_version);
+  const [showCultureNote, setShowCultureNote] = useState(false);
+  const [showEtymology, setShowEtymology] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const versions = ["casual", "polite", "formal"];
+  const versionLabels = { casual: "친근", polite: "정중", formal: "공식" };
+
+  const handleSave = () => {
+    if (saved) return;
+    onSaveCard({
+      id: "c-" + Date.now(),
+      card_type: "sentence",
+      learning_status: "learning",
+      has_real_use: false,
+      real_use_count: 0,
+      payload: {
+        korean_input: query,
+        step2_versions: result.step2_versions,
+        has_mnemonic: result.has_mnemonic || false,
+      },
+      tags: ["방금 추가됨"],
+      created_at: new Date().toISOString().slice(0, 10),
+    });
+    setSaved(true);
+  };
+
+  return (
+    <div className="anim-slide-up">
+      <div className="flex items-end gap-2 mb-2">
+        <div className="w-8 h-8 flex-shrink-0">
+          <DarumaAvatar mood="joy" size={32} />
+        </div>
+        <div className="text-xs text-[#6b6b6b]">번역을 완료했어요!</div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] overflow-hidden ml-10 paper-texture">
+        {/* Step 0: Cultural correction badge (if any) */}
+        {result.step0_cultural.needs_correction && (
+          <div className="px-4 py-3 bg-[#fef6ec] border-b border-[#f5d4a3] anim-step-reveal" style={{ animationDelay: "0ms" }}>
+            <div className="flex items-start gap-2">
+              <span className="text-[#f5a623] text-base mt-0.5">✨</span>
+              <div className="flex-1">
+                <div className="text-[11px] font-medium text-[#f5a623] mb-1">문화 교정</div>
+                <div className="text-xs text-[#6b6b6b] leading-relaxed">
+                  <span className="line-through text-[#9c9a92]">{result.step0_cultural.detected}</span>
+                  <span className="mx-2">→</span>
+                  <span className="font-medium text-[#1a1f3d]">{result.step0_cultural.corrected_to}</span>
+                </div>
+                <div className="text-[11px] text-[#9c9a92] mt-1.5 leading-relaxed">{result.step0_cultural.reason}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 1: Structure mapping */}
+        <div className="px-4 py-3 border-b border-[#e8e4dc] anim-step-reveal" style={{ animationDelay: "100ms" }}>
+          <div className="text-[10px] uppercase tracking-wider text-[#9c9a92] mb-2">STRUCTURE</div>
+          <div className="space-y-1.5">
+            {result.step1_structure.map((s, i) => {
+              const colorMap = { navy: "#1a1f3d", orange: "#e8541a", green: "#27ae60" };
+              return (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <span 
+                    className="px-2 py-0.5 rounded text-white font-medium text-[10px]"
+                    style={{ background: colorMap[s.marker_color] || "var(--ink-secondary)" }}
+                  >
+                    {s.korean}
+                  </span>
+                  <span className="text-[#9c9a92]">→</span>
+                  <span className="font-display text-sm">{s.japanese}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Step 2: Versions toggle */}
+        <div className="px-4 py-4 anim-step-reveal" style={{ animationDelay: "200ms" }}>
+          <div className="flex gap-1 mb-3">
+            {versions.map((v) => (
+              <button
+                key={v}
+                onClick={() => setActiveVersion(v)}
+                className="flex-1 px-2 py-1.5 text-[11px] rounded-full transition-colors"
+                style={{
+                  background: activeVersion === v ? "#1a1f3d" : "var(--tag-bg)",
+                  color: activeVersion === v ? "#fff" : "var(--ink-secondary)",
+                  fontWeight: activeVersion === v ? 500 : 400,
+                }}
+              >
+                {versionLabels[v]}
+                {result.recommended_version === v && (
+                  <span className="ml-1 text-[#f5a623]">★</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="font-display text-base leading-relaxed text-[#1a1f3d]">
+            {result.step2_versions[activeVersion]}
+          </div>
+
+          {/* New vocabulary that appears in this politeness level */}
+          {result.step2_vocabulary?.[activeVersion]?.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-dashed border-[#e8e4dc]">
+              <div className="text-[10px] uppercase tracking-wider text-[#9c9a92] mb-2 flex items-center gap-1.5">
+                <span>📖</span>
+                <span>이 표현의 새 어휘</span>
+              </div>
+              <div className="space-y-2">
+                {result.step2_vocabulary[activeVersion].map((vocab, i) => (
+                  <div key={i} className="flex items-start gap-3 p-2.5 bg-[#faf8f4] rounded-lg">
+                    <div className="flex-shrink-0">
+                      <div className="font-display text-sm text-[#1a1f3d]">{vocab.jp}</div>
+                      {vocab.reading && (
+                        <div className="text-[10px] text-[#9c9a92] mt-0.5">{vocab.reading}</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-[#1a1f3d] mb-0.5">{vocab.kr}</div>
+                      {vocab.note && (
+                        <div className="text-[10px] text-[#6b6b6b] leading-relaxed">{vocab.note}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Step 3: Grammar points */}
+        {result.step3_grammar?.length > 0 && (
+          <div className="px-4 py-3 border-t border-[#e8e4dc] anim-step-reveal" style={{ animationDelay: "300ms" }}>
+            <div className="text-[10px] uppercase tracking-wider text-[#9c9a92] mb-2">GRAMMAR</div>
+            {result.step3_grammar.map((g, i) => (
+              <div key={i} className={i > 0 ? "mt-3 pt-3 border-t border-dashed border-[#e8e4dc]" : ""}>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <div className="text-xs font-medium">{g.point_name}</div>
+                  {g.tag && (
+                    <span 
+                      className="text-[10px] px-2 py-0.5 rounded-full"
+                      style={{ background: "var(--tag-bg)", color: "var(--ink-secondary)" }}
+                    >
+                      {g.tag}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-[#6b6b6b] leading-relaxed">{g.explanation}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Step 4: Culture note (collapsible) */}
+        {result.step4_culture && (
+          <div className="border-t border-[#e8e4dc] anim-step-reveal" style={{ animationDelay: "400ms" }}>
+            <button
+              onClick={() => setShowCultureNote(!showCultureNote)}
+              className="w-full px-4 py-2.5 flex items-center justify-between text-[11px] hover:bg-[#faf8f4] transition-colors"
+            >
+              <span className="flex items-center gap-1.5 text-[#9c9a92] uppercase tracking-wider">
+                <span>🍵</span> Culture
+              </span>
+              <span className="text-[#9c9a92]">{showCultureNote ? "−" : "+"}</span>
+            </button>
+            {showCultureNote && (
+              <div className="px-4 pb-3 text-[11px] text-[#6b6b6b] leading-relaxed">
+                {result.step4_culture}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 5: Etymology (collapsible) */}
+        {result.step5_etymology && (
+          <div className="border-t border-[#e8e4dc] anim-step-reveal" style={{ animationDelay: "500ms" }}>
+            <button
+              onClick={() => setShowEtymology(!showEtymology)}
+              className="w-full px-4 py-2.5 flex items-center justify-between text-[11px] hover:bg-[#faf8f4] transition-colors"
+            >
+              <span className="flex items-center gap-1.5 text-[#9c9a92] uppercase tracking-wider">
+                <span>💡</span> Etymology · 니모닉
+              </span>
+              <span className="text-[#9c9a92]">{showEtymology ? "−" : "+"}</span>
+            </button>
+            {showEtymology && (
+              <div className="px-4 pb-3">
+                <div className="font-display text-lg mb-1">{result.step5_etymology.kanji}<span className="text-xs text-[#9c9a92] ml-2">{result.step5_etymology.reading}</span></div>
+                <div className="text-[11px] text-[#6b6b6b] leading-relaxed mb-2">{result.step5_etymology.story}</div>
+                <div className="text-[11px] p-2 bg-[#f5e6d3] rounded-lg text-[#854F0B]">
+                  💡 {result.step5_etymology.mnemonic}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Save button — Button 컴포넌트 사용 */}
+        <div className="px-4 py-3 border-t border-[#e8e4dc] bg-[#faf8f4]">
+          <Button
+            variant={saved ? "realUse" : "primary"}
+            size="md"
+            onClick={handleSave}
+            disabled={saved}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            {saved ? (
+              <>{ICONS.check} 카드에 저장됨</>
+            ) : (
+              <>{ICONS.bookmark} 내 카드에 저장</>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CALENDAR TAB
+// ============================================================
+function CalendarTab() {
+  const banner = FIXTURES.calendar_banner;
+  const today = new Date(2026, 4, 10); // 2026-05-10
+  const year = 2026;
+  const month = 4; // May (0-indexed)
+
+  // 이번 달 그리드
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDate = new Date(year, month + 1, 0).getDate();
+  const days = [];
+  for (let i = 0; i < firstDay; i++) days.push(null);
+  for (let d = 1; d <= lastDate; d++) days.push(d);
+
+  return (
+    <div className="flex flex-col h-full pb-14 overflow-y-auto">
+      <AppHeader centerLabel="달력" />
+
+      {/* Season banner — Sage Green pill (Image 7 spec) */}
+      <div className="px-4 pt-4">
+        <div 
+          className="rounded-full p-3 flex items-center justify-between cursor-pointer transition-colors hover:opacity-90"
+          style={{ background: "rgba(107, 143, 113, 0.12)", border: "0.5px solid rgba(107, 143, 113, 0.3)" }}
+        >
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-base flex-shrink-0">🌿</span>
+            <div className="text-xs flex-1 min-w-0 truncate" style={{ color: "var(--success)" }}>
+              <span className="opacity-70">이번 주 |</span>
+              <span className="mx-1.5 font-display font-medium">{banner.event_name_jp}</span>
+              <span className="opacity-70">{banner.days_left < 0 ? "지났어요" : "다가옵니다"} → 표현 배우기</span>
+            </div>
+          </div>
+          <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "var(--success)" }}>
+            <span className="text-white text-sm">→</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Month grid */}
+      <div className="px-4 pt-4 pb-6">
+        <div className="text-[10px] uppercase tracking-wider text-[#9c9a92] mb-3">May 2026</div>
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {["日","月","火","水","木","金","土"].map((d, i) => (
+            <div key={i} className="text-center text-[10px] text-[#9c9a92] py-1">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((d, i) => {
+            const isToday = d === 10;
+            const isHoliday = d === 5;
+            return (
+              <div 
+                key={i}
+                className="aspect-square flex items-center justify-center text-xs relative rounded-lg"
+                style={{
+                  background: isToday ? "#1a1f3d" : (isHoliday ? "#fef6ec" : "transparent"),
+                  color: isToday ? "#fff" : (isHoliday ? "var(--cultural-tip)" : (d ? "#1a1f3d" : "transparent")),
+                  fontWeight: isToday ? 500 : 400,
+                }}
+              >
+                {d}
+                {isHoliday && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#f5a623]"></div>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Upcoming events */}
+      <div className="px-4 pb-6">
+        <div className="text-[10px] uppercase tracking-wider text-[#9c9a92] mb-3">다가오는 일본 행사</div>
+        <div className="space-y-2">
+          {[
+            { date: "6/1", jp: "衣替え", kr: "의류 교체일" },
+            { date: "6/21", jp: "夏至", kr: "하지" },
+            { date: "7/7", jp: "七夕", kr: "칠석" },
+          ].map((e, i) => (
+            <div key={i} className="bg-white rounded-xl p-3 flex items-center justify-between border border-[#e8e4dc]">
+              <div className="flex items-center gap-3">
+                <div className="text-xs font-medium text-[#9c9a92] w-10">{e.date}</div>
+                <div>
+                  <div className="font-display text-sm">{e.jp}</div>
+                  <div className="text-[11px] text-[#9c9a92]">{e.kr}</div>
+                </div>
+              </div>
+              <span className="text-[#9c9a92] text-sm">›</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// LIFE TAB — 에피소드 리스트
+// ============================================================
+function LifeTab() {
+  const [filter, setFilter] = useState("전체");
+  const filters = ["전체", "직장", "육아", "일상", "소셜", "생활필수", "문화"];
+
+  const filtered = filter === "전체" 
+    ? FIXTURES.episodes 
+    : FIXTURES.episodes.filter(e => e.tags?.some(t => t === filter) || e.domain === filter);
+
+  return (
+    <div className="flex flex-col h-full pb-14 overflow-y-auto">
+      <AppHeader centerLabel="생활" />
+
+      {/* Intro card */}
+      <div className="px-4 pt-4">
+        <div className="bg-white rounded-2xl p-4 border border-[#e8e4dc] paper-texture">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <GrandmaAvatar size={48} />
+            </div>
+            <div className="flex-1 pt-1">
+              <div className="font-display text-sm mb-1">隣のおばあちゃんトーク</div>
+              <div className="text-[11px] text-[#6b6b6b] leading-relaxed">
+                일본의 생활 문화를 짧은 이야기로 들려드려요. JLPT에 안 나오는 진짜 일본의 모습.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter chips */}
+      <div className="px-4 pt-4">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          {filters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className="flex-shrink-0 px-3 py-1.5 text-xs rounded-full transition-colors"
+              style={{
+                background: filter === f ? "#1a1f3d" : "#fff",
+                color: filter === f ? "#fff" : "var(--ink-secondary)",
+                border: "1px solid #e8e4dc",
+                fontWeight: filter === f ? 500 : 400,
+              }}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Episodes */}
+      <div className="px-4 pt-4 pb-6 space-y-3">
+        {filtered.map((ep) => (
+          <div 
+            key={ep.id} 
+            className="bg-white rounded-2xl border border-[#e8e4dc] overflow-hidden hover:border-[#1a1f3d]/30 transition-colors cursor-pointer"
+          >
+            <div className="px-4 py-4">
+              <div className="flex items-start gap-3 mb-2">
+                <div className="text-2xl flex-shrink-0">{ep.domain_emoji}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-[#9c9a92] uppercase tracking-wider mb-0.5">
+                    {ep.domain} · #{String(ep.episode_number).padStart(2, "0")}
+                  </div>
+                  <div className="font-display text-base text-[#1a1f3d] leading-snug mb-1">
+                    {ep.title_jp}
+                  </div>
+                  <div className="text-[11px] text-[#6b6b6b] mb-2">{ep.title_kr}</div>
+                  <div className="text-xs text-[#6b6b6b] italic leading-relaxed">
+                    "{ep.scene_short}"
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#e8e4dc]/60">
+                <div className="flex gap-1.5">
+                  {ep.tags.slice(0, 2).map((t, i) => (
+                    <span key={i} className="text-[10px] px-2 py-0.5 bg-[#faf8f4] rounded-full text-[#6b6b6b]">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-[10px] text-[#9c9a92]">⏱ {ep.duration_min}분</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MY DECK TAB — 카드 그리드 + 플립
+// ============================================================
+function MyDeckTab({ cards, onCardClick, onOpenTeacher, onGoToLife }) {
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = cards.filter((c) => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "learning") return c.learning_status === "learning";
+    if (statusFilter === "mastered") return c.learning_status === "mastered";
+    if (statusFilter === "used") return c.has_real_use;
+    if (statusFilter === "mnemonic") return c.payload?.has_mnemonic === true;
+    return true;
+  });
+
+  const stats = {
+    total: cards.length,
+    used: cards.filter(c => c.has_real_use).length,
+    mastered: cards.filter(c => c.learning_status === "mastered").length,
+  };
+
+  return (
+    <div className="flex flex-col h-full pb-14 overflow-y-auto">
+      <AppHeader centerLabel="My Deck" />
+
+      {/* Stats */}
+      <div className="px-4 pt-4">
+        <div className="grid grid-cols-3 gap-2">
+          <StatCard label="총 카드" value={stats.total} accent="#1a1f3d" />
+          <StatCard label="써봤어요" value={stats.used} accent="#27ae60" />
+          <StatCard label="숙달완료" value={stats.mastered} accent="#6b8f71" />
+        </div>
+      </div>
+
+      {/* Filter chips — Image 5 spec: 카테고리 7개 + 학습 상태 별도 라인 */}
+      <div className="px-4 pt-4 space-y-2">
+        {/* 카테고리 7개 */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+          {["전체", "직장", "육아", "일상", "소셜", "생활필수", "문화"].map((cat) => {
+            const isActive = cat === "전체";
+            return (
+              <button
+                key={cat}
+                className="flex-shrink-0 px-3 py-1.5 text-xs rounded-full transition-colors"
+                style={{
+                  background: isActive ? "var(--brand-primary)" : "var(--surface)",
+                  color: isActive ? "#fff" : "var(--ink-secondary)",
+                  border: isActive ? "none" : "0.5px solid var(--hairline)",
+                  fontWeight: isActive ? 500 : 400,
+                }}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+        {/* 학습 상태 + 속성 필터 */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+          {[
+            { id: "all", label: "#전체", color: null },
+            { id: "learning", label: "#학습중", color: null },
+            { id: "mastered", label: "#숙달완료", color: "var(--success)" },
+            { id: "used", label: "#써봤어요", color: "var(--real-use)" },
+            { id: "mnemonic", label: "#니모닉있음💡", color: "var(--mnemonic)" },
+          ].map((f) => {
+            const isActive = statusFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                onClick={() => setStatusFilter(f.id)}
+                className="flex-shrink-0 px-3 py-1.5 text-xs rounded-full transition-colors"
+                style={{
+                  background: isActive ? "var(--brand-primary)" : "var(--surface)",
+                  color: isActive ? "#fff" : (f.color || "var(--ink-secondary)"),
+                  border: isActive ? "none" : "0.5px solid var(--hairline)",
+                  fontWeight: isActive ? 500 : 400,
+                }}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Card grid */}
+      <div className="px-4 pt-4 grid grid-cols-2 gap-3">
+        {filtered.map((card) => (
+          <FlipCard key={card.id} card={card} onClick={() => onCardClick && onCardClick(card)} />
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="flex items-center justify-center text-sm text-[#9c9a92] py-12">
+          이 카테고리에는 카드가 없어요
+        </div>
+      )}
+
+      {/* Entry cards — Image 5 사양: 선생님 모드 + 오바아찬 토크 진입점 */}
+      <div className="px-4 pt-5 pb-6 space-y-2">
+        <EntryCard
+          variant="primary"
+          avatar={<div className="w-full h-full flex items-center justify-center"><HaruAvatar size={36} /></div>}
+          icon="🎓"
+          title="선생님 모드"
+          subtitle="하루에게 설명하기"
+          onClick={() => onOpenTeacher && onOpenTeacher()}
+        />
+        <EntryCard
+          variant="secondary"
+          avatar={<div className="w-full h-full flex items-center justify-center"><GrandmaAvatar size={36} /></div>}
+          icon="🏮"
+          title="생활 에피소드"
+          subtitle="오바아찬 토크"
+          onClick={() => onGoToLife && onGoToLife()}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent }) {
+  return (
+    <div className="bg-white rounded-xl p-3 border border-[#e8e4dc]">
+      <div className="text-[10px] text-[#9c9a92] uppercase tracking-wider mb-1">{label}</div>
+      <div className="font-display text-2xl" style={{ color: accent }}>{value}</div>
+    </div>
+  );
+}
+
+// ============================================================
+// BUTTON — 디자인 시스템 시트 ⑤ 5종 통합 컴포넌트
+// 사용: <Button variant="primary">확인</Button>
+// variants: primary | secondary | ghost | danger | realUse
+// ============================================================
+function Button({ variant = "primary", size = "md", children, onClick, disabled, type = "button", className = "" }) {
+  const variantStyles = {
+    primary:   { background: "var(--brand-accent)", color: "#fff", border: "none" },
+    secondary: { background: "var(--surface)", color: "var(--brand-accent)", border: "1px solid var(--brand-accent)" },
+    ghost:     { background: "transparent", color: "var(--ink-primary)", border: "none" },
+    danger:    { background: "var(--surface)", color: "var(--map-pin)", border: "1px solid var(--map-pin)" },
+    realUse:   { background: "var(--real-use)", color: "#fff", border: "none" },
+  };
+
+  const sizeStyles = {
+    sm: { padding: "6px 12px", fontSize: "12px" },
+    md: { padding: "8px 16px", fontSize: "13px" },
+    lg: { padding: "10px 24px", fontSize: "14px" },
+  };
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`rounded-full font-medium transition-all disabled:opacity-30 ${className}`}
+      style={{ ...variantStyles[variant], ...sizeStyles[size] }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ============================================================
+// MASTERY BADGE — 시트의 ⑫ Mastery Badges 4단계
+// ============================================================
+function MasteryBadge({ status, hasRealUse, size = "sm" }) {
+  // 우선순위: 완전정복(써봤어요+숙달) > 숙달완료 > 써봤어요 > 학습중
+  const isPerfect = status === "mastered" && hasRealUse;
+  const isMastered = status === "mastered" && !hasRealUse;
+  const isUsed = status === "learning" && hasRealUse;
+  const isLearning = status === "learning" && !hasRealUse;
+
+  const config = isPerfect
+    ? { label: "완전정복", icon: "👑", color: "var(--badge-perfect)", bg: "rgba(231, 76, 60, 0.1)" }
+    : isMastered
+    ? { label: "숙달완료", icon: "✓", color: "var(--badge-mastered)", bg: "rgba(107, 143, 113, 0.12)" }
+    : isUsed
+    ? { label: "써봤어요", icon: "✓", color: "var(--badge-real-use)", bg: "rgba(39, 174, 96, 0.1)" }
+    : { label: "학습중", icon: "🌱", color: "#8e8a82", bg: "rgba(212, 208, 197, 0.4)" };
+
+  if (size === "sm") {
+    return (
+      <span 
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium"
+        style={{ background: config.bg, color: config.color }}
+        title={config.label}
+      >
+        <span>{config.icon}</span>
+      </span>
+    );
+  }
+  return (
+    <span 
+      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium"
+      style={{ background: config.bg, color: config.color }}
+    >
+      <span>{config.icon}</span>
+      <span>{config.label}</span>
+    </span>
+  );
+}
+
+// ============================================================
+// ENTRY CARD — My Deck 하단 진입 카드 (Image 5 사양)
+// 큰 가로 카드, 좌측 아바타 + 우측 화살표
+// ============================================================
+function EntryCard({ avatar, icon, title, subtitle, variant = "primary", onClick }) {
+  const variantStyles = {
+    primary: {
+      // 선생님 모드: 진한 navy 배경 + 흰 텍스트
+      background: "var(--brand-primary)",
+      color: "#fff",
+      subtitleColor: "rgba(255, 255, 255, 0.7)",
+      arrowColor: "rgba(255, 255, 255, 0.6)",
+    },
+    secondary: {
+      // 오바아찬 토크: 베이지/cultural-tip tint
+      background: "#fef6ec",
+      color: "var(--ink-primary)",
+      subtitleColor: "var(--ink-secondary)",
+      arrowColor: "var(--ink-tertiary)",
+    },
+  };
+  const style = variantStyles[variant];
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full rounded-2xl p-3 flex items-center gap-3 transition-transform active:scale-[0.98]"
+      style={{ background: style.background, color: style.color }}
+    >
+      <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden" 
+           style={{ background: variant === "primary" ? "rgba(255,255,255,0.1)" : "rgba(232, 84, 26, 0.08)" }}>
+        {avatar}
+      </div>
+      <div className="flex items-center gap-2 flex-1 text-left min-w-0">
+        <span className="text-base flex-shrink-0">{icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium truncate">{title}</div>
+          {subtitle && <div className="text-[11px] truncate" style={{ color: style.subtitleColor }}>{subtitle}</div>}
+        </div>
+      </div>
+      <span className="flex-shrink-0 text-base" style={{ color: style.arrowColor }}>›</span>
+    </button>
+  );
+}
+
+// ============================================================
+// MODAL — 공통 풀스크린 모달 (오버레이 + ESC 닫기 + 스크롤 잠금)
+// ============================================================
+function Modal({ open, onClose, children }) {
+  useEffect(() => {
+    if (!open) return;
+
+    // ESC로 닫기
+    const handleKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+
+    // 바디 스크롤 잠금
+    document.body.classList.add("modal-open");
+
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.classList.remove("modal-open");
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div 
+      className="modal-overlay fixed inset-0 z-50 flex items-end justify-center"
+      style={{ background: "rgba(26, 31, 61, 0.45)" }}
+      onClick={onClose}
+    >
+      <div 
+        className="modal-content w-full max-w-[420px] max-h-[95vh] max-h-[95dvh] overflow-y-auto rounded-t-3xl"
+        style={{ background: "var(--bg-primary)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full" style={{ background: "var(--hairline)" }}></div>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// TEACHER MODE MODAL — 선생님 모드 (Image 1 / 08.png 사양)
+// 다크 배경 + Haru 캐릭터 + 진행률 + 카드 주제 + 메시지 + 입력 + 힌트 + 숙달도
+// ============================================================
+function TeacherModeModal({ open, onClose, card }) {
+  const [progress] = useState(3); // 3/5 질문
+  const [hintsLeft] = useState(2);
+  const [masteryPct] = useState(80);
+
+  if (!card) return null;
+
+  // 카드에서 주제 추출
+  const topic = card.card_type === "sentence" 
+    ? (card.payload.step2_versions?.casual?.split(",")[0] || card.payload.korean_input)
+    : "오늘의 주제";
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      {/* 다크 배경 컨테이너 */}
+      <div className="min-h-[85vh] min-h-[85dvh]" style={{ background: "#0d1224" }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10" 
+             style={{ background: "rgba(13, 18, 36, 0.95)", backdropFilter: "blur(8px)" }}>
+          <button 
+            onClick={onClose} 
+            aria-label="닫기"
+            className="w-8 h-8 flex items-center justify-center text-white/80 text-2xl leading-none rounded-full transition-colors hover:bg-white/10"
+          >‹</button>
+          <div className="flex items-center gap-2 text-white">
+            <span className="text-base">🎓</span>
+            <span className="font-medium text-sm">선생님 모드</span>
+          </div>
+          <div className="w-6"></div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="px-4 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium" style={{ color: "var(--brand-accent)" }}>{progress}/5 질문</span>
+            <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <div 
+                className="h-full rounded-full transition-all" 
+                style={{ width: `${(progress/5)*100}%`, background: "var(--brand-accent)" }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Topic card */}
+        <div className="px-4 pt-2 pb-3">
+          <div className="rounded-2xl px-5 py-4 text-center" 
+               style={{ background: "var(--bg-primary)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="text-[11px] mb-2 inline-block px-3 py-1 rounded-full" 
+                 style={{ background: "var(--tag-bg)", color: "var(--ink-secondary)" }}>
+              오늘 주제:
+            </div>
+            <div className="font-display text-xl my-2" style={{ color: "var(--ink-primary)" }}>
+              {topic}
+            </div>
+            <div className="flex justify-center gap-2 mt-3">
+              {(card.tags || ["#비교표현"]).slice(0, 2).map((t, i) => (
+                <span key={i} className="text-[11px] px-3 py-1 rounded-full" 
+                      style={{ background: "var(--tag-bg)", color: "var(--ink-secondary)" }}>
+                  #{t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Haru 캐릭터 영역 */}
+        <div className="px-4 py-6 flex justify-center relative">
+          <div className="relative">
+            <HaruAvatar size={140} />
+            {/* 이름 라벨 */}
+            <div className="absolute -right-2 top-12 px-2.5 py-1 rounded-full text-[10px]" 
+                 style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.15)" }}>
+              ハル <span style={{ color: "rgba(255,255,255,0.5)" }}>(Haru)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Haru의 질문 (말풍선) */}
+        <div className="px-4 pb-3">
+          <div className="rounded-2xl px-4 py-3 text-sm leading-relaxed relative"
+               style={{ background: "var(--surface)", color: "var(--ink-primary)" }}>
+            {/* 꼬리 */}
+            <div 
+              className="absolute -top-1.5 left-8 w-3 h-3 rotate-45" 
+              style={{ background: "var(--surface)" }}
+            ></div>
+            <div className="font-display text-[13px] leading-relaxed">
+              先生、{topic}って言いたい時、<br/>
+              他の表現とどう違うんですか？<br/>
+              ちょっと教えてもらえますか？ 😊
+            </div>
+          </div>
+        </div>
+
+        {/* 답변 입력 영역 */}
+        <div className="px-4 pb-3">
+          <div className="rounded-2xl p-3" 
+               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <textarea
+              placeholder="여기에 일본어 또는 한국어로&#10;설명해주세요..."
+              rows="4"
+              className="w-full bg-transparent resize-none text-sm focus:outline-none"
+              style={{ color: "rgba(255,255,255,0.85)" }}
+            />
+            <div className="flex justify-end mt-2">
+              <Button variant="primary" size="md">
+                전송 ✈
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* 힌트 영역 */}
+        <div className="px-4 pb-3">
+          <div className="rounded-2xl px-3 py-2.5 flex items-center justify-between" 
+               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="flex items-center gap-2 text-xs text-white/80">
+              <span>💡</span>
+              <span>힌트 남은 횟수:</span>
+              <div className="flex gap-1">
+                {[0,1,2].map(i => (
+                  <span 
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ 
+                      background: i < hintsLeft ? "var(--brand-accent)" : "rgba(255,255,255,0.2)"
+                    }}
+                  ></span>
+                ))}
+              </div>
+              <span className="text-white/50 text-[10px]">({hintsLeft}회 남음)</span>
+            </div>
+            <button className="text-xs font-medium px-3 py-1 rounded-full" 
+                    style={{ color: "var(--brand-accent)", border: "1px solid var(--brand-accent)" }}>
+              힌트 보기
+            </button>
+          </div>
+        </div>
+
+        {/* 숙달도 영역 */}
+        <div className="px-4 pb-6">
+          <div className="rounded-2xl px-3 py-2.5 flex items-center gap-3" 
+               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-base" 
+                 style={{ background: "rgba(245, 166, 35, 0.15)" }}>
+              ⭐
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] text-white/80">이 카드 숙달까지:</span>
+                <span className="text-xs font-medium" style={{ color: "var(--brand-accent)" }}>{masteryPct}%</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
+                <div 
+                  className="h-full transition-all" 
+                  style={{ width: `${masteryPct}%`, background: "var(--brand-accent)" }}
+                ></div>
+              </div>
+              <div className="text-[10px] text-white/60 mt-1.5">
+                한 번 더 잘 설명하면 ⭐ 숙달 완료!
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ============================================================
+// CARD DETAIL MODAL — 카드 상세 (Image 4 좌측 사양)
+// 풀스크린 카드 + 발음 듣기 + 뉘앙스/사용예/니모닉 + 써봤어요 버튼
+// ============================================================
+function CardDetailModal({ open, onClose, card, onSaveRealUse }) {
+  if (!card) return null;
+
+  const playPronunciation = () => {
+    const text = card.payload.step2_versions?.casual || "";
+    if ('speechSynthesis' in window && text) {
+      // 이전 발화 취소 (큐 누적 방지)
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "ja-JP";
+      utter.rate = 0.85;
+      window.speechSynthesis.speak(utter);
+    }
+  };
+
+  // sentence 카드만 풍부한 상세, 다른 타입은 간단한 정보
+  const isSentence = card.card_type === "sentence";
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <div className="min-h-[80vh] min-h-[80dvh] pb-6">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <button 
+            onClick={onClose} 
+            aria-label="닫기"
+            className="w-8 h-8 flex items-center justify-center text-2xl leading-none rounded-full transition-colors hover:bg-black/5"
+            style={{ color: "var(--ink-secondary)" }}
+          >‹</button>
+          <div className="flex items-center gap-2">
+            <Logo size={24} />
+            <span className="font-medium text-sm" style={{ color: "var(--brand-primary)" }}>My Niche</span>
+          </div>
+          <StreakIndicator days={12} />
+        </div>
+
+        {/* Card flip indicator */}
+        <div className="px-4 mb-2">
+          <div className="bg-white rounded-full px-4 py-2 inline-block text-xs" 
+               style={{ background: "var(--tag-bg)", color: "var(--ink-secondary)" }}>
+            {isSentence && card.payload.korean_input ? card.payload.korean_input : "카드 상세"}
+          </div>
+          <span className="text-[10px] ml-2" style={{ color: "var(--ink-tertiary)" }}>
+            ↻ 뒤집는 중...
+          </span>
+        </div>
+
+        {/* Main card */}
+        <div className="px-4">
+          <div className="bg-white rounded-3xl p-5 relative shadow-[var(--shadow-card)]" 
+               style={{ border: "1px solid var(--hairline)" }}>
+            {/* Top decorations */}
+            <div className="absolute top-3 left-4">
+              <BookmarkIcon filled={card.has_real_use} size={20} 
+                            color={card.has_real_use ? "var(--brand-accent)" : "var(--ink-tertiary)"} />
+            </div>
+            {isSentence && (
+              <div className="absolute top-2 right-3">
+                <SakuraStamp size={48} />
+              </div>
+            )}
+
+            {/* Main expression */}
+            <div className="pt-8 pb-3 text-center">
+              <div className="font-display text-3xl mb-2" style={{ color: "var(--ink-primary)" }}>
+                {isSentence 
+                  ? (card.payload.step2_versions?.casual || card.payload.korean_input)
+                  : card.payload.event_name_jp || card.payload.scene}
+              </div>
+              {isSentence && (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-xs" style={{ color: "var(--ink-tertiary)" }}>
+                    (おおきめです)
+                  </span>
+                  <button 
+                    onClick={playPronunciation}
+                    className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+                    style={{ background: "var(--tag-bg)", color: "var(--ink-secondary)" }}
+                    title="발음 듣기"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5L6 9H2v6h4l5 4V5z" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sections */}
+            {isSentence && (
+              <>
+                {/* 뉘앙스 */}
+                <div className="mt-4 pt-4 border-t border-dashed" style={{ borderColor: "var(--hairline)" }}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span style={{ color: "var(--success)" }}>🍃</span>
+                    <span className="text-xs font-medium" style={{ color: "var(--success)" }}>뉘앙스</span>
+                  </div>
+                  <div className="text-xs leading-relaxed pl-6" style={{ color: "var(--ink-secondary)" }}>
+                    딱 잘라 말하지 않고 부드럽게<br/>
+                    '{card.payload.korean_input}'의 느낌
+                  </div>
+                </div>
+
+                {/* 사용 예 */}
+                <div className="mt-3 pt-3 border-t border-dashed" style={{ borderColor: "var(--hairline)" }}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span style={{ color: "var(--brand-accent)" }}>💬</span>
+                    <span className="text-xs font-medium" style={{ color: "var(--brand-accent)" }}>사용 예</span>
+                  </div>
+                  <div className="text-xs leading-relaxed pl-6" style={{ color: "var(--ink-secondary)" }}>
+                    {card.payload.step2_versions?.polite && (
+                      <div className="flex items-center gap-1.5 py-0.5">
+                        <span>•</span>
+                        <span className="font-display text-[13px]">{card.payload.step2_versions.polite}</span>
+                      </div>
+                    )}
+                    {card.payload.step2_versions?.formal && (
+                      <div className="flex items-center gap-1.5 py-0.5">
+                        <span>•</span>
+                        <span className="font-display text-[13px]">{card.payload.step2_versions.formal}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 니모닉 */}
+                {card.payload.has_mnemonic && (
+                  <div className="mt-3 pt-3 border-t border-dashed" style={{ borderColor: "var(--hairline)" }}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span style={{ color: "var(--mnemonic)" }}>💡</span>
+                      <span className="text-xs font-medium" style={{ color: "var(--mnemonic)" }}>니모닉</span>
+                    </div>
+                    <div className="text-xs leading-relaxed pl-6" style={{ color: "var(--ink-secondary)" }}>
+                      한자 분해 + 한국어 매핑으로<br/>
+                      기억하기 쉽게 풀어드려요
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* 하단 액션 (이전 / 써봤어요 / 다음) */}
+        <div className="px-4 mt-4 grid grid-cols-3 gap-2 items-center">
+          <Button variant="secondary" size="md">← 이전</Button>
+          <Button 
+            variant="realUse" 
+            size="md" 
+            onClick={() => onSaveRealUse && onSaveRealUse(card)}
+            className="flex items-center justify-center gap-1.5"
+          >
+            ✓ 써봤어요!
+          </Button>
+          <Button variant="secondary" size="md">다음 →</Button>
+        </div>
+
+        {/* 학습 상태 토글 */}
+        <div className="px-4 mt-3 grid grid-cols-2 gap-2">
+          <button 
+            className="rounded-full py-2 text-xs flex items-center justify-center gap-1.5"
+            style={{ 
+              background: "var(--surface)",
+              color: "var(--cultural-tip)",
+              border: "1px solid var(--cultural-tip)"
+            }}
+          >
+            📖 복습필요
+          </button>
+          <button 
+            className="rounded-full py-2 text-xs flex items-center justify-center gap-1.5"
+            style={{ 
+              background: "var(--surface)",
+              color: "var(--mnemonic)",
+              border: "1px solid var(--mnemonic)"
+            }}
+          >
+            ⭐ 완벽히 알아요
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function FlipCard({ card, onClick }) {
+
+  const renderContent = () => {
+    if (card.card_type === "sentence") {
+      return (
+        <>
+          <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: "var(--ink-tertiary)" }}>한국어</div>
+          <div className="text-sm leading-snug" style={{ color: "var(--ink-primary)" }}>{card.payload.korean_input}</div>
+          {card.payload.step2_versions?.casual && (
+            <div className="font-display text-xs mt-2 leading-tight truncate" style={{ color: "var(--brand-accent)" }}>
+              {card.payload.step2_versions.casual}
+            </div>
+          )}
+        </>
+      );
+    }
+    if (card.card_type === "calendar") {
+      return (
+        <>
+          <div className="text-2xl mb-2">{card.payload.event_emoji}</div>
+          <div className="text-sm font-medium">{card.payload.event_name_kr}</div>
+          <div className="font-display text-xs mt-1" style={{ color: "var(--brand-accent)" }}>
+            {card.payload.event_name_jp}
+          </div>
+          <div className="text-[10px] mt-1" style={{ color: "var(--ink-tertiary)" }}>{card.payload.event_date}</div>
+        </>
+      );
+    }
+    if (card.card_type === "episode") {
+      return (
+        <>
+          <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: "var(--ink-tertiary)" }}>에피소드</div>
+          <div className="text-xs italic leading-snug" style={{ color: "var(--ink-primary)" }}>{card.payload.scene}</div>
+        </>
+      );
+    }
+  };
+
+  return (
+    <button 
+      type="button"
+      className="aspect-[3/4] cursor-pointer text-left transition-transform active:scale-[0.97]"
+      onClick={() => onClick && onClick()}
+    >
+      <div 
+        className="bg-white rounded-2xl p-3 border h-full flex flex-col relative"
+        style={{ borderColor: "var(--hairline)" }}
+      >
+        {/* Top decorations: bookmark + sakura stamp (Image 4 spec) */}
+        <div className="absolute top-2 left-2 z-10">
+          <BookmarkIcon 
+            filled={card.has_real_use} 
+            size={14}
+            color={card.has_real_use ? "var(--brand-accent)" : "var(--ink-tertiary)"}
+          />
+        </div>
+        {card.card_type === "sentence" && (
+          <div className="absolute top-1 right-1 z-10">
+            <SakuraStamp size={26} />
+          </div>
+        )}
+
+        <div className="flex-1 pt-3">{renderContent()}</div>
+        <div className="flex items-center justify-between mt-2 pt-2 border-t" style={{ borderColor: "var(--hairline)" }}>
+          <div className="flex flex-wrap gap-1">
+            {card.tags.slice(0, 1).map((t, i) => (
+              <span key={i} className="text-[9px] px-1.5 py-0.5 rounded" 
+                    style={{ background: "var(--tag-bg)", color: "var(--ink-secondary)" }}>
+                #{t}
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-1 items-center">
+            <MasteryBadge status={card.learning_status} hasRealUse={card.has_real_use} size="sm" />
+            {card.payload.has_mnemonic && (
+              <span 
+                className="text-[9px] px-1 py-0.5 rounded font-medium"
+                style={{ background: "rgba(155, 89, 182, 0.12)", color: "var(--mnemonic)" }}
+                title="니모닉있음"
+              >💡</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// ============================================================
+// SIDE PANEL — 데스크톱에서 검증 체크리스트 표시
+// ============================================================
+function SidePanel({ activeTab, savedCardCount }) {
+  const checklists = {
+    chat: {
+      title: "채팅 탭 — 검증 포인트",
+      subtitle: "5단계 딥 번역의 인지 부담",
+      items: [
+        { id: "c1", text: "예시 chip 3개 중 하나를 탭해보세요" },
+        { id: "c2", text: "Step 0 문화 교정 배지가 한눈에 들어오나요?" },
+        { id: "c3", text: "Step 1 색상 마커(파랑/주황/초록)가 직관적인가요?" },
+        { id: "c4", text: "Step 2 정중도 토글(친근/정중/공식)을 바꿔보세요. 추천(★)이 명확한가요?" },
+        { id: "c5", text: "Step 4 Culture, Step 5 Etymology 펼쳐보기. 너무 많은 정보인가요?" },
+        { id: "c6", text: "'내 카드에 저장' 버튼을 눌러보세요" },
+      ],
+      hypothesis: "5단계가 순차적으로 펼쳐져도 인지 부담이 크지 않을 것",
+    },
+    calendar: {
+      title: "달력 탭 — 검증 포인트",
+      subtitle: "시즌 배너의 어필력",
+      items: [
+        { id: "ca1", text: "상단 こどもの日 배너가 즉시 눈에 띄나요?" },
+        { id: "ca2", text: "달력에서 5월 5일(어린이날)이 강조됐는지 확인" },
+        { id: "ca3", text: "다가오는 행사 리스트가 자연스러운가요?" },
+        { id: "ca4", text: "오늘(10일) 표시가 적절한가요?" },
+      ],
+      hypothesis: "시즌 배너가 매월 새로운 콘텐츠 진입점이 될 것",
+    },
+    life: {
+      title: "생활 탭 — 검증 포인트",
+      subtitle: "에피소드 카드 어필력 + IA",
+      items: [
+        { id: "l1", text: "'옆집 할머니 이야기' 인트로가 친근한가요?" },
+        { id: "l2", text: "필터 chip(전체/지역공동체/...)을 눌러보세요" },
+        { id: "l3", text: "에피소드 카드의 정보 위계: 도메인 → 제목 → 씬 → 태그 순으로 자연스러운가요?" },
+        { id: "l4", text: "씬 도입 인용문(\"...\")이 호기심을 자극하나요?" },
+      ],
+      hypothesis: "여기 한 번 진입하면 '한 편 더' 보고 싶어질 것",
+    },
+    deck: {
+      title: "내 카드 탭 — 검증 포인트",
+      subtitle: "카드 상세 + 선생님 모드 + 진입 흐름",
+      items: [
+        { id: "d1", text: "통계 카드 3개(총/써봤어요/숙달완료)가 즉시 이해되나요?" },
+        { id: "d2", text: "카드 좌상단 북마크 + 우상단 桜 도장이 일본 미감을 잘 표현하나요?" },
+        { id: "d3", text: "카드 마스터리 배지 4단계(🌱학습중/✓숙달/✓써봤어요/👑완전정복)가 한눈에 구분되나요?" },
+        { id: "d4", text: "카드를 탭해 상세 모달을 열어보세요. 발음 듣기 🔊가 작동하나요?" },
+        { id: "d5", text: "상세 모달의 '써봤어요!' 버튼을 눌러보세요. 카드 상태가 즉시 업데이트되나요?" },
+        { id: "d6", text: "하단 진입 카드 '선생님 모드'를 탭하면 Haru 캐릭터의 풀스크린 화면이 나타나나요?" },
+        { id: "d7", text: "ESC 키 또는 오버레이 클릭으로 모달이 자연스럽게 닫히나요?" },
+        { 
+          id: "d8", 
+          text: savedCardCount > 5 
+            ? `채팅에서 저장한 카드가 ${savedCardCount - 5}개 추가되어 있나요? (5장이 기본)` 
+            : "채팅 탭에서 카드 저장 후 다시 와서 확인해보세요"
+        },
+      ],
+      hypothesis: "200장 모이면 본인 일본어의 '거울'이 될 것 + Haru/Grandma 두 캐릭터로 학습 흐름 다양화",
+    },
+  };
+
+  const current = checklists[activeTab] || checklists.chat;
+
+  return (
+    <aside className="side-panel">
+      <div className="bg-white rounded-2xl p-6 border border-[#e8e4dc] shadow-[var(--shadow-soft)]">
+        {/* 활성 탭 라벨 */}
+        <div className="text-[10px] uppercase tracking-wider text-[#9c9a92] mb-2">
+          현재 검증 중
+        </div>
+        <h2 className="font-display text-xl mb-1">{current.title}</h2>
+        <p className="text-xs text-[#6b6b6b] mb-5">{current.subtitle}</p>
+
+        {/* 검증 가설 */}
+        <div className="mb-5 p-3 bg-[#fef6ec] rounded-xl border border-[#f5d4a3]/50">
+          <div className="text-[10px] uppercase tracking-wider text-[#f5a623] mb-1">검증 가설</div>
+          <p className="text-xs text-[#6b6b6b] leading-relaxed">{current.hypothesis}</p>
+        </div>
+
+        {/* 체크리스트 */}
+        <div className="text-[10px] uppercase tracking-wider text-[#9c9a92] mb-3">
+          만져보면서 확인
+        </div>
+        <ul className="space-y-2.5">
+          {current.items.map((item, idx) => (
+            <li key={item.id} className="flex items-start gap-2.5 text-xs leading-relaxed">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#faf8f4] border border-[#e8e4dc] flex items-center justify-center text-[10px] text-[#9c9a92] mt-0.5">
+                {idx + 1}
+              </span>
+              <span className="text-[#1a1f3d]">{item.text}</span>
+            </li>
+          ))}
+        </ul>
+
+        {/* 푸터 */}
+        <div className="mt-6 pt-4 border-t border-[#e8e4dc]">
+          <div className="text-[10px] text-[#9c9a92] leading-relaxed">
+            이 패널은 데스크톱에서만 보입니다.<br/>
+            모바일/태블릿에서는 숨겨져요.
+          </div>
+        </div>
+      </div>
+
+      {/* 프로토타입 정보 */}
+      <div className="mt-4 px-2 text-[10px] text-[#9c9a92] leading-relaxed">
+        My Niche · 毎日 · prototype v0.2<br/>
+        7월 본 개발 전 검증용 · AI 응답은 mock
+      </div>
+    </aside>
+  );
+}
+
+// ============================================================
+// APP
+// ============================================================
+function App() {
+  const [activeTab, setActiveTab] = useState("chat");
+  const [cards, setCards] = useState(FIXTURES.cards);
+  // 모달 상태
+  const [detailCard, setDetailCard] = useState(null);
+  const [teacherCard, setTeacherCard] = useState(null);
+
+  const handleSaveCard = (newCard) => {
+    setCards((prev) => [newCard, ...prev]);
+  };
+
+  const handleSaveRealUse = (card) => {
+    // "써봤어요!" 클릭 → has_real_use=true로 마크
+    setCards((prev) => prev.map(c => 
+      c.id === card.id 
+        ? { ...c, has_real_use: true, real_use_count: (c.real_use_count || 0) + 1 } 
+        : c
+    ));
+    // 토스트나 피드백은 추후
+    setDetailCard(null);
+  };
+
+  const handleOpenTeacher = () => {
+    // 첫 번째 sentence 카드를 선생님 모드 주제로
+    const firstSentence = cards.find(c => c.card_type === "sentence");
+    if (firstSentence) setTeacherCard(firstSentence);
+  };
+
+  return (
+    <div className="layout-wrapper">
+      <div className="app-frame relative overflow-hidden">
+        <div className="h-full" style={{ display: activeTab === "chat" ? "block" : "none" }}>
+          <ChatTab onSaveCard={handleSaveCard} cards={cards} />
+        </div>
+        <div className="h-full" style={{ display: activeTab === "calendar" ? "block" : "none" }}>
+          <CalendarTab />
+        </div>
+        <div className="h-full" style={{ display: activeTab === "life" ? "block" : "none" }}>
+          <LifeTab />
+        </div>
+        <div className="h-full" style={{ display: activeTab === "deck" ? "block" : "none" }}>
+          <MyDeckTab 
+            cards={cards} 
+            onCardClick={setDetailCard}
+            onOpenTeacher={handleOpenTeacher}
+            onGoToLife={() => setActiveTab("life")}
+          />
+        </div>
+        <TabBar active={activeTab} onChange={setActiveTab} />
+      </div>
+      <SidePanel activeTab={activeTab} savedCardCount={cards.length} />
+
+      {/* Modals — app-frame 외부에 두어 fixed positioning이 viewport 기준 동작 */}
+      <CardDetailModal 
+        open={!!detailCard} 
+        onClose={() => setDetailCard(null)} 
+        card={detailCard}
+        onSaveRealUse={handleSaveRealUse}
+      />
+      <TeacherModeModal 
+        open={!!teacherCard} 
+        onClose={() => setTeacherCard(null)} 
+        card={teacherCard}
+      />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,904 @@
+# =====================================================================
+# My Niche (毎日) — Cultural Correction Golden Dataset
+# Version: 1.1 | Created: 2026-05-10 | Total: 90 cases
+# =====================================================================
+#
+# Purpose:
+#   Claude Haiku 기반 문화 교정 자동 감지 프롬프트의 정확도를 측정하기 위한
+#   golden dataset. 개발 시작 전(2026.7-8월) Eval 셋업의 기준 데이터.
+#
+# Pass Criteria:
+#   - Binary accuracy (needs_correction 일치): 85% 이상
+#   - Type accuracy (correction_type 일치, positive only): 75% 이상
+#   - False positive rate (negative case 오판정): 15% 이하
+#   - False negative rate (positive 놓침): 25% 이하   [v1.1 추가]
+#
+#   주: false negative criteria는 v1.1에서 추가됨.
+#       처음 약속한 Positive 50:Negative 30 분포가 작성 도중
+#       42:48로 변경되어, positive 케이스에서의 누락이 더 치명적이 됨.
+#       "교정 필요한 걸 놓치는 비율"이 사용자 가치에 직접 영향.
+#
+# Distribution:
+#   Positive (교정 필요)        : 42 cases
+#   Negative (직역 OK)          : 48 cases
+#
+#   Category    : 일상 23 / 육아 22 / 직장 21 / 소셜 14 / 관공서 10
+#   Level       : N3 50 / N5 40
+#   Edge case   : 10 cases (정답 모호, AI 판단 관찰용)
+#
+# Correction Types (positive 42개 분포):
+#   가족호칭 8 / 경어 7 / 감정표현 7 / 수치 6 / 문화어휘 6 / 겸양 4 / 나이 4
+#
+# Type Definitions (v1.1 추가):
+#   문화어휘: 한국식 어휘를 일본 제도/문화에 맞는 어휘로 변환
+#            (예: 마트→スーパー, 비자→在留資格, 보증금→敷金+礼金)
+#            v1.0에서 감정표현으로 잘못 분류되었던 케이스를 재분류
+#
+# Field Definitions:
+#   id              : GD-{NNN}
+#   input_kr        : 사용자가 입력했다고 가정한 한국어
+#   category        : 직장 / 육아 / 일상 / 관공서 / 소셜
+#   level           : N5 / N3
+#   needs_correction: true / false
+#   correction_type : 수치 / 가족호칭 / 경어 / 나이 / 겸양 / 감정표현 / 문화어휘 / none
+#   expected_jp     : 기대되는 일본어 표현 (구어체 정중체 기본)
+#   explanation     : 판정 근거 1-2문장
+#   note_for_eval   : (선택) edge case일 때 채점 가이드
+#
+# =====================================================================
+
+# ============================================================
+# SECTION 1. 육아 (20 cases)
+# ============================================================
+
+- id: GD-001
+  input_kr: "저희 아이는 얼마전에 22개월이 되었어요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 수치
+  expected_jp: "うちの子はこの前1歳10ヶ月になりました"
+  explanation: "한국은 만 나이 + 개월 수로 표현하지만, 일본은 24개월 미만은 '○歳○ヶ月' 형식이 자연스럽다. 22개월 = 1歳10ヶ月."
+
+- id: GD-002
+  input_kr: "우리 남편이 요즘 야근이 많아서 힘들어해요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "うちの主人、最近残業が多くて大変そうなんです"
+  explanation: "'우리 남편'을 '私の夫'로 직역하면 격식체가 되어 어색. 일상 대화에서는 'うちの主人' 또는 'うちの旦那'가 자연스럽다."
+
+- id: GD-003
+  input_kr: "우리 아이가 정말 똑똑해서 한 번 보고 다 외워요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 겸양
+  expected_jp: "うちの子、覚えるのが早い方かもしれません"
+  explanation: "한국에서는 자녀 자랑이 일상적이지만, 일본은 자녀 자랑을 직접적으로 하지 않는 문화. '~方かもしれません'으로 톤다운."
+  note_for_eval: "edge case — 교정 강도 모호. AI는 '말하지 않는 게 낫다'가 아니라 톤다운 표현을 제시해야 함."
+
+- id: GD-004
+  input_kr: "우리 엄마가 이번 주에 일본에 오세요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "母が今週日本に来ます"
+  explanation: "타인에게 자기 어머니를 말할 때, 일본에서는 '母'(겸양형)가 표준. '私のお母さん'은 타인의 어머니를 부르는 표현. 자기 가족에 'いらっしゃる' 같은 존경어 사용도 부적절."
+
+- id: GD-005
+  input_kr: "아이가 어린이집에서 또래보다 좀 큰 편이에요"
+  category: 육아
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供が保育園で同じ月齢の子より大きめです"
+  explanation: "한국식 사고와 일본식이 일치하는 표현. '큰 편이에요'를 '大きめです'로 직역해도 자연스럽다. 단, '어린이집' → '保育園' 어휘 매칭은 필요."
+
+- id: GD-006
+  input_kr: "우리 아빠가 환갑이라 한국에 다녀왔어요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "父の還暦で韓国に帰省してきました"
+  explanation: "'우리 아빠' → '父' (겸양형). 또한 '환갑' 개념은 일본에도 있지만(還暦), 일본은 한국만큼 큰 의례로 챙기지 않는 문화 차이도 있음."
+
+- id: GD-007
+  input_kr: "아이가 이번에 5살이 되었어요"
+  category: 육아
+  level: N5
+  needs_correction: true
+  correction_type: 나이
+  expected_jp: "子供が今度4歳になりました"
+  explanation: "한국식 세는 나이(태어난 해 1살 + 새해마다 +1)와 일본식 만 나이는 1-2살 차이. 한국 5살 ≈ 일본 4歳. 단, 사용자가 이미 만 나이로 입력했을 가능성도 있어 확인 필요."
+  note_for_eval: "edge case — 사용자가 이미 만 나이로 5살이라고 입력했다면 교정 불필요. AI가 사용자에게 '한국 나이인가요 만 나이인가요' 확인 옵션을 제시하면 best."
+
+- id: GD-008
+  input_kr: "보육원 선생님한테 인사를 어떻게 해야 할지 모르겠어요"
+  category: 육아
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "保育園の先生にどう挨拶したらいいか分かりません"
+  explanation: "단순한 고민 표현. 직역으로 자연스럽고 문화 교정 필요 없음. 단, 후속 응답에서 '실제 인사 표현'을 가르쳐주는 게 가치."
+
+- id: GD-009
+  input_kr: "우리 시어머니가 다음달에 일본 오신대요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "義母が来月日本に来るそうです"
+  explanation: "'시어머니' → '義母'(ぎぼ). 한국은 시어머니/장모를 구분하지만 일본은 '義母'로 통합. '우리'를 '私の'로 직역하지 않고 생략하거나 'うちの'."
+
+- id: GD-010
+  input_kr: "아이 사진이 너무 잘 나왔는데 SNS에 올려도 될지 고민이에요"
+  category: 육아
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供の写真がすごく良く撮れたんですが、SNSに載せていいか悩んでます"
+  explanation: "사고방식 자체는 한일 공통. 직역해도 자연스럽다. 다만 일본은 한국보다 자녀 사진 SNS 공개에 보수적인 경향이 있어, 후속 대화에서 문화 차이 언급 가능."
+
+- id: GD-011
+  input_kr: "아이가 38도 열이 나서 병원에 가야 할 것 같아요"
+  category: 육아
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供が38度の熱が出て、病院に行かないといけないみたいです"
+  explanation: "온도 단위(섭씨)와 의료 표현이 한일 동일. 직역으로 자연스럽다. negative 케이스."
+
+- id: GD-012
+  input_kr: "아이가 어린이집 친구들이랑 잘 못 어울리는 것 같아서 걱정이에요"
+  category: 육아
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供が保育園のお友達とあまり馴染めてないみたいで心配です"
+  explanation: "감정 표현과 사고방식이 한일 공통. 직역으로 자연스러움. 단 '어린이집' → '保育園' 어휘만 매칭."
+
+- id: GD-013
+  input_kr: "우리 며느리가 다음달에 출산해요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "息子の嫁が来月出産します"
+  explanation: "한국은 '며느리'라는 직접 호칭이 있지만, 일본은 '息子の嫁'(아들의 처)로 우회 표현이 자연스럽다. 'うちの嫁'도 가능하지만 다소 거친 표현."
+
+- id: GD-014
+  input_kr: "아이가 이가 늦게 나는 편이에요"
+  category: 육아
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供が歯が生えるのが遅い方です"
+  explanation: "발달 관련 객관적 진술. 직역으로 자연스럽고 문화 교정 불필요."
+
+- id: GD-015
+  input_kr: "내일 아이 입학식인데 어떤 옷을 입혀야 할지 모르겠어요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 문화어휘
+  expected_jp: "明日子供の入園式なんですが、どんな服を着せたらいいか分からなくて"
+  explanation: "한국은 '입학식'이지만 일본 보육원은 '入園式'(にゅうえんしき), 초등학교는 '入学式'. 한국식 어휘를 일본 제도에 맞게 변환 필요."
+
+- id: GD-016
+  input_kr: "어제 아이 백일잔치 했어요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 문화어휘
+  expected_jp: "昨日、子供のお食い初めをしました"
+  explanation: "한국의 '백일잔치'는 100일 기념 행사이지만, 일본의 'お食い初め'(おくいぞめ)는 100일 무렵 첫 식사 의례로 비슷하면서도 다른 문화. 직역 불가."
+
+- id: GD-017
+  input_kr: "아이가 오늘 처음으로 혼자 신발 신었어요"
+  category: 육아
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供が今日初めて一人で靴を履きました"
+  explanation: "보편적 육아 경험 공유. 직역으로 자연스럽다."
+
+- id: GD-018
+  input_kr: "우리 둘째가 첫째보다 키가 더 커요"
+  category: 육아
+  level: N5
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "うちの下の子、上の子より背が高いんです"
+  explanation: "한국은 '첫째/둘째'로 형제 순서를 표현하지만, 일본은 '上の子/下の子'(우엣코/시타노코)가 일상적. '長男/次男' 같은 표현은 격식 있는 자리에서만."
+
+- id: GD-019
+  input_kr: "아이가 요즘 잠을 잘 못 자서 저도 힘들어요"
+  category: 육아
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供が最近よく寝なくて、私も大変です"
+  explanation: "공감대 형성용 일상 표현. 직역 자연스럽다. 후속 대화에서 일본 엄마 친구들과의 대화 매너로 발전 가능."
+
+- id: GD-020
+  input_kr: "아이가 한국말을 안 쓰려고 해서 걱정이에요"
+  category: 육아
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "子供が韓国語を使いたがらなくて、心配なんです"
+  explanation: "이중언어 가정의 보편적 고민. 직역 자연스럽다. 단, 일본 거주 한국인 학습자에게 매우 공감되는 시나리오로 후속 가치 큼."
+
+
+# ============================================================
+# SECTION 2. 직장 (20 cases)
+# ============================================================
+
+- id: GD-021
+  input_kr: "이 디자인 좀 수정해주세요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 경어
+  expected_jp: "このデザイン、少し修正していただけますでしょうか"
+  explanation: "한국어 '~해주세요'를 'してください'로 직역하면 일본 직장에서는 명령조에 가깝다. 'していただけますでしょうか' 정도가 동료/상사에게 자연스러운 경어."
+
+- id: GD-022
+  input_kr: "회의는 몇 시부터예요?"
+  category: 직장
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "会議は何時からですか?"
+  explanation: "단순 정보 질문. 직역으로 자연스럽고 경어 레벨도 적절."
+
+- id: GD-023
+  input_kr: "이 부분에 대해서 한번 의견 주실 수 있을까요?"
+  category: 직장
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "この部分について、ご意見いただけますでしょうか"
+  explanation: "이미 정중하고 일본 직장에서도 자연스러운 표현. 직역해도 OK인 케이스."
+
+- id: GD-024
+  input_kr: "수고하셨어요"
+  category: 직장
+  level: N5
+  needs_correction: true
+  correction_type: 경어
+  expected_jp: "お疲れさまでした"
+  explanation: "한국어 '수고하셨어요'를 직역하면 부자연스럽다. 'お疲れさまでした'는 일본 직장의 보편적 인사로, 거의 모든 상황에서 사용 가능."
+
+- id: GD-025
+  input_kr: "다음 주 월요일까지 마감이라 좀 빡빡할 것 같아요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 감정표현
+  expected_jp: "来週の月曜が締め切りで、少しタイトかもしれません"
+  explanation: "'빡빡하다'를 직역하면 어색. 'タイト' 'きつい' 'ギリギリ' 등 맥락에 맞는 표현으로 변환. 또한 직장에서는 직접적인 부정 표현보다 'かもしれません'으로 부드럽게."
+
+- id: GD-026
+  input_kr: "오늘 회식 못 갈 것 같아요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 경어
+  expected_jp: "今日の飲み会、申し訳ないんですが行けそうにないんです"
+  explanation: "한국에서는 단도직입적인 거절도 허용되지만, 일본 직장에서는 '申し訳ない' '~そうにない' 등 완곡 표현이 매너. 또한 '회식' → '飲み会' 어휘 매칭."
+
+- id: GD-027
+  input_kr: "업무 메일 답장 보냈어요"
+  category: 직장
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "業務メールの返信を送りました"
+  explanation: "단순 사실 보고. 직역으로 자연스럽다."
+
+- id: GD-028
+  input_kr: "이 일정 좀 조정해도 될까요?"
+  category: 직장
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "このスケジュール、調整してもよろしいでしょうか"
+  explanation: "이미 정중한 표현. 직역해도 자연스럽다."
+
+- id: GD-029
+  input_kr: "부장님이 회의 참석하라고 하셨어요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 경어
+  expected_jp: "部長から会議に参加するよう言われました"
+  explanation: "한국어 '~하라고 하셨어요'를 '~と言われました'로 자연스럽게. 일본은 상사 발언을 전달할 때 존경어를 줄이고 사실 전달 위주로 표현."
+
+- id: GD-030
+  input_kr: "이번 프로젝트 진짜 힘들었어요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 감정표현
+  expected_jp: "今回のプロジェクト、本当に大変でした"
+  explanation: "'진짜'를 '本当に'로 변환. '힘들었다'를 '辛かった'로 직역하면 감정이 강하게 전달되어 직장에서 부적절. '大変でした'가 무난."
+
+- id: GD-031
+  input_kr: "거래처에서 자료 보내준다고 했어요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 경어
+  expected_jp: "取引先から資料を送っていただけるとのことです"
+  explanation: "외부 사람의 행위를 사내 사람에게 전달할 때, 일본은 '~ていただける' 같은 겸양어/존경어 사용. 한국어 '보내준다고 했어요'를 직역하면 경어가 빠진다."
+
+- id: GD-032
+  input_kr: "오늘 점심 같이 드실래요?"
+  category: 직장
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今日のお昼、一緒に食べませんか?"
+  explanation: "동료 간 일상 권유. 직역으로 자연스럽다."
+
+- id: GD-033
+  input_kr: "이 부분 다시 한번 확인 부탁드려요"
+  category: 직장
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "この部分、もう一度確認をお願いします"
+  explanation: "이미 적절한 정중도. 직역으로 자연스러움."
+
+- id: GD-034
+  input_kr: "선배가 알려준 방법대로 했더니 잘 됐어요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "先輩が教えてくれた方法でやったら、うまくいきました"
+  explanation: "'선배' → '先輩'는 동일하지만, 한국만큼 일본 직장에서 빈번하게 호칭으로 쓰이지 않음. 보통 이름 + さん이 표준. 단 본 케이스는 일반 명사로 사용되어 OK."
+  note_for_eval: "edge case — '先輩' 사용 자체는 자연스러우나, 호칭으로 부르는 빈도가 다르다는 문화 차이는 후속 설명 가치."
+
+- id: GD-035
+  input_kr: "회사 분위기가 한국이랑 너무 달라요"
+  category: 직장
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "会社の雰囲気が韓国とすごく違うんです"
+  explanation: "직역으로 자연스럽고 한국인 거주자가 자주 표현하는 상황. negative 케이스로서 AI가 과잉 교정하지 않는지 확인용."
+
+- id: GD-036
+  input_kr: "신입 사원인데 일을 너무 잘해요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 겸양
+  expected_jp: "新入社員なんですが、仕事がすごくできる方なんです"
+  explanation: "타인 칭찬은 '~ができる方' '~が上手な方' 등으로 부드럽게. '잘해요'를 '上手です'로 직역하면 다소 직설적."
+  note_for_eval: "edge case — 칭찬은 일본도 OK이지만 톤은 더 부드럽게. 교정 강도가 모호."
+
+- id: GD-037
+  input_kr: "오늘 회의록 작성 제가 할게요"
+  category: 직장
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今日の議事録、私が作成します"
+  explanation: "단순 자원 표현. 직역으로 자연스럽다."
+
+- id: GD-038
+  input_kr: "이번 분기 매출이 30% 늘었어요"
+  category: 직장
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今四半期の売上が30%増えました"
+  explanation: "수치 + 비즈니스 보고. 직역으로 자연스럽고 단위도 동일."
+
+- id: GD-039
+  input_kr: "사장님 결재 받으려고 기다리는 중이에요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 경어
+  expected_jp: "社長の承認をいただこうと待っているところです"
+  explanation: "'결재 받다'를 '決裁を受ける'로 직역도 가능하나 '承認をいただく'가 더 자연스럽고 정중. '사장님' → '社長'(さん 안 붙임, 직책 자체가 경어)."
+
+- id: GD-040
+  input_kr: "이메일 답장이 일주일째 안 와서 답답해요"
+  category: 직장
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "メールの返信が1週間も来なくて、もどかしいです"
+  explanation: "감정 표현 자체는 한일 공통. 직역으로 자연스럽다."
+
+
+# ============================================================
+# SECTION 3. 일상 (20 cases)
+# ============================================================
+
+- id: GD-041
+  input_kr: "오늘 점심 뭐 먹을까요?"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今日のお昼、何食べましょうか?"
+  explanation: "한국식 사고와 일본식이 일치하는 일상 표현. 직역해도 자연스럽고 문화적 차이가 없다."
+
+- id: GD-042
+  input_kr: "비가 와서 우산을 챙겨야 할 것 같아요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "雨が降りそうなので、傘を持って行った方がよさそうです"
+  explanation: "일상적인 날씨 표현. 직역으로 충분. AI가 불필요하게 교정 제안하지 않는지 확인하는 negative 케이스."
+
+- id: GD-043
+  input_kr: "와 진짜 대박이에요 이 가게"
+  category: 일상
+  level: N5
+  needs_correction: true
+  correction_type: 감정표현
+  expected_jp: "わぁ、このお店すごくいいですね"
+  explanation: "'대박'은 일본어 직역 불가능한 한국식 감탄사. 'すごい' 'やばい' '最高' 등 맥락에 따라 변환. 'やばい'는 친한 사이 한정."
+  note_for_eval: "edge case — 'やばい' vs 'すごい' 선택은 관계 컨텍스트에 따라 다름. 여러 옵션 제시가 best."
+
+- id: GD-044
+  input_kr: "어제 친구랑 한국 식당 갔는데 진짜 맛있었어요"
+  category: 일상
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "昨日友達と韓国料理屋さんに行ったんですが、本当に美味しかったです"
+  explanation: "일상 경험 공유. 직역으로 자연스럽다. '진짜' → '本当に' 정도의 어휘 매칭만 필요."
+
+- id: GD-045
+  input_kr: "오늘 날씨 너무 좋아서 산책 가고 싶어요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今日天気がすごく良くて、散歩に行きたいです"
+  explanation: "일상 표현. 직역으로 자연스럽고 negative 케이스."
+
+- id: GD-046
+  input_kr: "어머 너무 예뻐요"
+  category: 일상
+  level: N5
+  needs_correction: true
+  correction_type: 감정표현
+  expected_jp: "わぁ、すごく可愛いですね"
+  explanation: "'어머'는 한국식 감탄사. 'あら' 'まあ'로 직역도 가능하나 '와' 정도가 자연스럽고, 'わぁ'가 일상 회화에 더 어울림."
+
+- id: GD-047
+  input_kr: "이번 주말에 시간 괜찮으세요?"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今週末、お時間大丈夫ですか?"
+  explanation: "친구/지인과의 일상 약속 표현. 직역으로 자연스럽다."
+
+- id: GD-048
+  input_kr: "전철이 지연돼서 늦을 것 같아요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "電車が遅延していて、遅れそうです"
+  explanation: "교통 상황 보고. 직역으로 자연스럽다."
+
+- id: GD-049
+  input_kr: "한국에서 라면 사 왔는데 같이 드실래요?"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "韓国からラーメン買ってきたんですが、一緒に食べませんか?"
+  explanation: "선의 권유 표현. 직역으로 자연스럽고 문화 교정 불필요."
+
+- id: GD-050
+  input_kr: "벌써 오후 3시예요? 시간 진짜 빨라요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "もう午後3時ですか?時間が本当に早いですね"
+  explanation: "시간에 대한 일상적 감상. 직역으로 자연스럽다."
+
+- id: GD-051
+  input_kr: "오늘 갑자기 추워졌어요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今日急に寒くなりましたね"
+  explanation: "날씨 변화에 대한 일상적 공감 표현. 직역으로 자연스럽다."
+
+- id: GD-052
+  input_kr: "아이고 깜짝 놀랐네"
+  category: 일상
+  level: N5
+  needs_correction: true
+  correction_type: 감정표현
+  expected_jp: "わっ、びっくりした"
+  explanation: "'아이고'는 한국식 감탄사로 직역 불가. 놀람의 맥락에서는 'わっ' 'うわっ' 'びっくりした' 등으로 변환. 슬픔/탄식 맥락이면 'やれやれ' 'はぁ'."
+  note_for_eval: "edge case — '아이고'는 맥락에 따라 놀람/슬픔/탄식 등 의미가 달라 단일 정답 없음. AI가 맥락을 추정하거나 옵션 제시 필요."
+
+- id: GD-053
+  input_kr: "이 동네 진짜 조용하고 좋네요"
+  category: 일상
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "この辺、本当に静かで良いですね"
+  explanation: "동네 인상 표현. 직역으로 자연스럽다."
+
+- id: GD-054
+  input_kr: "어제 밤에 잠을 못 자서 너무 피곤해요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "昨日の夜眠れなくて、すごく疲れてます"
+  explanation: "수면 부족과 피로. 직역으로 자연스러운 일상 표현."
+
+- id: GD-055
+  input_kr: "아이고 이를 어쩌나"
+  category: 일상
+  level: N3
+  needs_correction: true
+  correction_type: 감정표현
+  expected_jp: "あらら、どうしよう"
+  explanation: "한국식 한탄/걱정 감탄사. 'あらら' 'まいったな' '困ったな' 등이 자연스럽다."
+
+- id: GD-056
+  input_kr: "오늘 머리 자르러 미용실 가요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "今日髪を切りに美容室に行きます"
+  explanation: "일상 활동 보고. 직역으로 자연스럽다."
+
+- id: GD-057
+  input_kr: "이 카페 분위기 너무 좋아요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "このカフェ、雰囲気がすごくいいです"
+  explanation: "장소 평가. 직역으로 자연스럽다."
+
+- id: GD-058
+  input_kr: "한국 친구가 일본 놀러 와서 같이 다닐 거예요"
+  category: 일상
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "韓国の友達が日本に遊びに来るので、一緒に出かける予定です"
+  explanation: "친구 방문 일정. 직역으로 자연스럽다."
+
+- id: GD-059
+  input_kr: "벚꽃 보러 어디 가는 게 좋을까요?"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "桜を見に、どこに行ったらいいでしょうか?"
+  explanation: "추천 요청. 직역으로 자연스럽고, 일본은 桜(벚꽃) 자체가 문화 키워드라 후속 대화 가치 큼."
+
+- id: GD-060
+  input_kr: "장 보러 마트 갔다 왔어요"
+  category: 일상
+  level: N5
+  needs_correction: true
+  correction_type: 문화어휘
+  expected_jp: "買い物にスーパーに行ってきました"
+  explanation: "'마트'는 한국식 외래어. 일본은 'スーパー'(슈퍼)가 표준. 'マート'라고 하면 통하지 않거나 다른 의미로 받아들일 수 있음. 어휘 매칭 필수."
+
+
+# ============================================================
+# SECTION 4. 관공서 (10 cases)
+# ============================================================
+
+- id: GD-061
+  input_kr: "30평 정도 되는 아파트를 찾고 있어요"
+  category: 관공서
+  level: N3
+  needs_correction: true
+  correction_type: 수치
+  expected_jp: "100㎡くらいのマンションを探しています"
+  explanation: "한국의 '평'은 일본에서 통하지 않는 단위. 1평 ≈ 3.3㎡. '아파트'도 일본의 'アパート'(저층 임대)와 'マンション'(고층/분양) 구분 필요."
+
+- id: GD-062
+  input_kr: "주민등록증 같은 신분증이 있나요?"
+  category: 관공서
+  level: N3
+  needs_correction: true
+  correction_type: 문화어휘
+  expected_jp: "在留カードのような身分証はありますか?"
+  explanation: "'주민등록증'은 한국 제도. 일본 거주 외국인의 동등 신분증은 '在留カード'(자이류 카드). 한국식 제도 어휘를 일본 제도 어휘로 변환 필요."
+
+- id: GD-063
+  input_kr: "은행 가서 통장 만들고 싶어요"
+  category: 관공서
+  level: N5
+  needs_correction: true
+  correction_type: 문화어휘
+  expected_jp: "銀行で口座を作りたいです"
+  explanation: "한국은 '통장'(물리적 책자)이 일반적이지만, 일본은 '口座'(계좌) 개념이 표준. 통장은 '通帳'로 별도 발급되는 부속물. 어휘 차이 교정."
+
+- id: GD-064
+  input_kr: "주민세 내러 시청 가야 해요"
+  category: 관공서
+  level: N3
+  needs_correction: true
+  correction_type: 감정표현
+  expected_jp: "住民税を払いに市役所に行かないといけません"
+  explanation: "'주민세' → '住民税' 어휘는 동일하지만 제도가 약간 다름. '시청'은 한국이지만 일본 거주자는 보통 '市役所'(시야쿠쇼) 또는 '区役所'(구야쿠쇼) 사용."
+
+- id: GD-065
+  input_kr: "건강보험증 잃어버려서 재발급 받으러 왔어요"
+  category: 관공서
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "健康保険証をなくしてしまって、再発行に来ました"
+  explanation: "한일 제도 명칭이 동일(健康保険証). 직역으로 자연스럽다."
+
+- id: GD-066
+  input_kr: "이거 어떻게 작성해야 하는지 잘 모르겠어요"
+  category: 관공서
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "これ、どうやって書いたらいいか分からなくて"
+  explanation: "단순 질문. 직역으로 자연스럽고 관공서 창구에서 매우 빈번한 표현."
+
+- id: GD-067
+  input_kr: "전입신고 하려고 왔는데요"
+  category: 관공서
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "転入届を出しに来ました"
+  explanation: "한일 동일 제도(전입신고/転入届). 어휘 매칭만 되면 직역 OK."
+
+- id: GD-068
+  input_kr: "월세가 7만엔인데 보증금이 너무 많이 나가요"
+  category: 관공서
+  level: N3
+  needs_correction: true
+  correction_type: 수치
+  expected_jp: "家賃が7万円ですが、敷金や礼金が結構かかります"
+  explanation: "한국의 '보증금' 개념은 일본의 '敷金(시키킨, 환불됨)+礼金(레이킨, 환불 안 됨)' 두 가지로 분리됨. 단순 직역하면 일본 부동산 계약 구조를 반영 못함."
+
+- id: GD-069
+  input_kr: "서류 준비 다 해왔어요"
+  category: 관공서
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "書類は全部準備してきました"
+  explanation: "단순 사실 보고. 직역으로 자연스럽다."
+
+- id: GD-070
+  input_kr: "비자 갱신은 어디서 해야 하나요?"
+  category: 관공서
+  level: N3
+  needs_correction: true
+  correction_type: 문화어휘
+  expected_jp: "在留資格の更新はどこですればいいですか?"
+  explanation: "'비자' → '在留資格'(자이류시카쿠)가 일본 제도 정식 명칭. 'ビザ'도 통하지만 정확하지 않음. 또한 갱신 창구는 '入国管理局'(입국관리국, 入管)."
+
+
+# ============================================================
+# SECTION 5. 소셜 (10 cases)
+# ============================================================
+
+- id: GD-071
+  input_kr: "오늘 처음 뵙겠습니다 잘 부탁드려요"
+  category: 소셜
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "はじめまして、よろしくお願いします"
+  explanation: "표준 첫인사. 직역이 그대로 자연스러운 일본어 인사."
+
+- id: GD-072
+  input_kr: "선물 가져왔어요 별 거 아니에요"
+  category: 소셜
+  level: N3
+  needs_correction: true
+  correction_type: 겸양
+  expected_jp: "つまらないものですが、お持ちしました"
+  explanation: "한국의 '별 거 아니에요'는 일본에서 'つまらないものですが'(따분한 물건이지만)로 정형화된 겸양 표현. 직역하면 '대단치 않다'는 뉘앙스가 약해진다."
+
+- id: GD-073
+  input_kr: "초대해주셔서 감사합니다"
+  category: 소셜
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "招待していただいて、ありがとうございます"
+  explanation: "감사 표현. 직역으로 자연스럽다."
+
+- id: GD-074
+  input_kr: "한국에서는 이렇게 하는데 일본은 어떻게 해요?"
+  category: 소셜
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "韓国ではこうするんですが、日本ではどうしますか?"
+  explanation: "문화 비교 질문. 직역으로 자연스럽고 한국 거주자가 자주 쓰는 매우 가치있는 표현."
+
+- id: GD-075
+  input_kr: "저 술 잘 못 마셔요"
+  category: 소셜
+  level: N5
+  needs_correction: true
+  correction_type: 겸양
+  expected_jp: "私、お酒があまり強くないんです"
+  explanation: "'잘 못 마신다'를 '飲めない'로 직역하면 거절이 강해 회식 자리 분위기를 깬다. '弱い' '強くない'로 부드럽게 표현하는 게 매너."
+
+- id: GD-076
+  input_kr: "일본 온지 벌써 5년 됐어요"
+  category: 소셜
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "日本に来てから、もう5年になります"
+  explanation: "거주 기간 표현. 직역으로 자연스럽고 매우 빈번한 자기소개 표현."
+
+- id: GD-077
+  input_kr: "다음에 또 만나요"
+  category: 소셜
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "また今度会いましょう"
+  explanation: "헤어짐 인사. 직역으로 자연스럽다."
+
+- id: GD-078
+  input_kr: "맛있게 잘 먹었습니다"
+  category: 소셜
+  level: N5
+  needs_correction: true
+  correction_type: 경어
+  expected_jp: "ごちそうさまでした"
+  explanation: "한국어 '잘 먹었습니다'를 '美味しく食べました'로 직역하면 어색. 'ごちそうさまでした'는 식사 후 정형화된 인사로 거의 모든 상황에서 사용."
+
+- id: GD-079
+  input_kr: "한국 음식 좋아하세요?"
+  category: 소셜
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "韓国料理、お好きですか?"
+  explanation: "소셜 자리에서 무난한 질문. 직역으로 자연스럽다."
+
+- id: GD-080
+  input_kr: "이거 한국에서 가져온 김치인데 드셔보세요"
+  category: 소셜
+  level: N3
+  needs_correction: false
+  correction_type: none
+  expected_jp: "これ、韓国から持ってきたキムチなんですが、よかったらどうぞ"
+  explanation: "선의 권유 표현. 직역도 자연스럽지만 'よかったら' 'どうぞ' 같은 일본식 권유 표현이 더 부드럽다. 큰 교정은 불필요."
+
+
+# =====================================================================
+# SECTION 6. 신규 추가 (10 cases) — v1.1
+# 부족한 유형 보충: 수치 +5, 나이 +3, 가족호칭 +2
+# =====================================================================
+
+- id: GD-081
+  input_kr: "친구한테 5만원 빌려줬어요"
+  category: 일상
+  level: N5
+  needs_correction: true
+  correction_type: 수치
+  expected_jp: "友達に5,000円くらい貸しました"
+  explanation: "한국 5만원 ≈ 일본 5,000엔(2026년 환율 기준 1엔≈10원). 원화 금액을 그대로 쓰면 일본인 청자는 감을 잡지 못한다. 단순 환산이 아니라 일본 화폐 단위로 변환 필요."
+  note_for_eval: "edge case — 환율 변동 고려해 정확한 환산보다 '대략적인 일본 감각'으로 변환하는 게 자연스러움. AI가 'くらい' '程度' 같은 근사 표현을 함께 제안하면 best."
+
+- id: GD-082
+  input_kr: "키가 170cm 정도 돼요"
+  category: 소셜
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "身長は170cmくらいです"
+  explanation: "한일 모두 cm 단위로 키 표현. 직역으로 자연스럽다. negative 케이스로 AI가 수치만 보고 과잉 교정하지 않는지 확인."
+
+- id: GD-083
+  input_kr: "한국에서 차로 2시간 거리예요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "韓国で車で2時間くらいの距離です"
+  explanation: "시간 단위는 한일 동일. 직역 자연스럽다. negative 케이스."
+
+- id: GD-084
+  input_kr: "월급이 300만원 정도 돼요"
+  category: 직장
+  level: N3
+  needs_correction: true
+  correction_type: 수치
+  expected_jp: "月収が30万円くらいです"
+  explanation: "한국 300만원 ≈ 일본 30만엔. 한국 직장인 월급을 일본 청자에게 말할 때 원화 그대로 말하면 감각이 안 잡힌다. 또한 '월급' → '月収' 어휘도 자연스럽게."
+  note_for_eval: "수치 + 문화어휘 복합 케이스. '월급'은 '月給' '月収' 둘 다 사용 가능하나 회화에서는 '月収'가 자연스러움."
+
+- id: GD-085
+  input_kr: "한국 친구가 한 30분 거리 살아요"
+  category: 일상
+  level: N5
+  needs_correction: false
+  correction_type: none
+  expected_jp: "韓国の友達が30分くらいの距離に住んでます"
+  explanation: "시간 단위. 직역 자연스럽다. negative 케이스로 짧은 수치 표현이 과잉 교정되지 않는지."
+
+- id: GD-086
+  input_kr: "이거 한국에서 5천원에 샀어요"
+  category: 소셜
+  level: N5
+  needs_correction: true
+  correction_type: 수치
+  expected_jp: "これ、韓国で500円くらいで買いました"
+  explanation: "5천원 ≈ 500엔. 쇼핑 금액을 일본 화폐 감각으로 변환해야 청자가 가격대를 이해. 'くらい'를 붙여 근사치 표현이 자연스러움."
+
+- id: GD-087
+  input_kr: "어머니가 올해 65세이신데 아직 일하세요"
+  category: 소셜
+  level: N3
+  needs_correction: true
+  correction_type: 가족호칭
+  expected_jp: "母が今年65歳ですが、まだ働いています"
+  explanation: "타인에게 자기 어머니를 말할 때 '母'(겸양형) 사용. '어머니'를 'お母さん'으로 직역하면 타인의 어머니를 가리키는 말이 되어 부적절. 또한 자기 가족 행위에 'いらっしゃる' 같은 존경어 사용 안 함."
+
+- id: GD-088
+  input_kr: "내년에 우리 첫째가 초등학교 들어가요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 나이
+  expected_jp: "来年、うちの上の子が小学校に上がります"
+  explanation: "한국은 '들어간다'(입학)지만 일본은 '上がる'(올라가다)가 자연스러운 표현. 또한 '첫째' → '上の子' 가족호칭도 함께 변환."
+  note_for_eval: "복합 케이스 — 나이/학년 표현 + 가족호칭 + 동사 선택. 한 문장에 여러 교정 포인트가 있을 때 AI가 모두 잡는지 검증용."
+
+- id: GD-089
+  input_kr: "조카가 올해 7살이라 초등학교 들어갔어요"
+  category: 소셜
+  level: N3
+  needs_correction: true
+  correction_type: 나이
+  expected_jp: "甥(姪)が今年6歳で、小学校に上がりました"
+  explanation: "한국 7살(세는 나이) ≈ 일본 6歳(만 나이). 또한 '조카'는 일본어로 남자조카 '甥'(おい), 여자조카 '姪'(めい)로 성별 구분 필요. AI는 사용자에게 성별 확인 옵션을 제시하는 게 best."
+  note_for_eval: "edge case — 성별 정보가 없어 정답이 둘. AI가 둘 다 제시하거나 사용자에게 확인 요청하면 best. 단순히 한쪽만 선택해도 부분 점수."
+
+- id: GD-090
+  input_kr: "아빠가 올해 환갑이세요"
+  category: 육아
+  level: N3
+  needs_correction: true
+  correction_type: 나이
+  expected_jp: "父が今年還暦です"
+  explanation: "환갑(60세)은 한일 모두 '還暦(かんれき)'이라는 동일 한자 개념을 공유. 단 '아빠' → '父'(겸양형) 가족호칭 변환과 '~이세요'의 존경어 제거가 필요. 일본은 자기 가족 행위에 존경어 안 씀."
+
+
+# =====================================================================
+# END OF DATASET v1.1
+# Total: 90 cases | Positive: 42 | Negative: 48
+# =====================================================================

@@ -1,0 +1,42 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; echo \"$f\" | grep -qE '\\.(tsx?|ts)$' && result=$(cd /Users/kyoungjoon.cho/myniche && npx tsc --noEmit 2>&1 | tail -5); echo \"${result:-타입 오류 없음 ✓}\"; } 2>/dev/null || true",
+            "timeout": 30,
+            "async": true,
+            "statusMessage": "TypeScript 타입체크 중..."
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [ -f \"$f\" ] && echo \"$f\" | grep -qE '\\.(tsx?|ts|jsx?)$' && cd /Users/kyoungjoon.cho/myniche && npx eslint \"$f\" 2>&1 | tail -20; } 2>/dev/null || true",
+            "timeout": 30,
+            "async": true,
+            "statusMessage": "ESLint 검사 중..."
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [ -f \"$f\" ] && echo \"$f\" | grep -qE '\\.(tsx?|ts|jsx?)$' && ! echo \"$f\" | grep -qE 'globals\\.css$' && hits=$(grep -nE '#[0-9a-fA-F]{3,6}' \"$f\" 2>/dev/null); [ -n \"$hits\" ] && echo '{\"systemMessage\": \"⚠️ 색상 하드코딩 감지! CSS 변수(var(--color-*))를 사용하세요. CLAUDE.md 규칙 참조.\"}' || true; } 2>/dev/null || true",
+            "timeout": 5,
+            "statusMessage": "색상 규칙 검사 중..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/kyoungjoon.cho/myniche && git status --short 2>/dev/null | jq -Rs '{\"systemMessage\": (\"📋 오늘 변경된 파일:\\n\" + .)}'",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

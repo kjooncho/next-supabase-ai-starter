@@ -1,0 +1,2210 @@
+{
+  "report": {
+    "summary": {
+      "total_cases": 90,
+      "completed": 90,
+      "errors": 0,
+      "criteria_version": "v1"
+    },
+    "metrics": {
+      "binary_accuracy": 0.9111,
+      "type_accuracy": 0.925,
+      "false_positive_rate": 0.125,
+      "false_negative_rate": 0.0476
+    },
+    "pass_criteria": {
+      "binary_accuracy": {
+        "actual": 0.9111,
+        "threshold": 0.85,
+        "passed": true
+      },
+      "type_accuracy": {
+        "actual": 0.925,
+        "threshold": 0.7,
+        "passed": true
+      },
+      "false_positive_rate": {
+        "actual": 0.125,
+        "threshold": 0.15,
+        "passed": true
+      },
+      "false_negative_rate": {
+        "actual": 0.0476,
+        "threshold": 0.25,
+        "passed": true
+      },
+      "overall_passed": true
+    },
+    "by_type": {
+      "수치": {
+        "total": 6,
+        "correct": 5,
+        "accuracy": 0.8333
+      },
+      "가족호칭": {
+        "total": 8,
+        "correct": 7,
+        "accuracy": 0.875
+      },
+      "겸양": {
+        "total": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "나이": {
+        "total": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "문화어휘": {
+        "total": 6,
+        "correct": 6,
+        "accuracy": 1.0
+      },
+      "경어": {
+        "total": 7,
+        "correct": 6,
+        "accuracy": 0.8571
+      },
+      "감정표현": {
+        "total": 7,
+        "correct": 5,
+        "accuracy": 0.7143
+      }
+    },
+    "latency": {
+      "avg_ms": 3607,
+      "p95_ms": 7315
+    },
+    "severity_distribution": {
+      "high": 24,
+      "medium": 20,
+      "low": 2
+    },
+    "failure_cases": [
+      {
+        "id": "GD-001",
+        "input": "저희 아이는 얼마전에 22개월이 되었어요",
+        "expected": true,
+        "predicted": true,
+        "expected_type": "수치",
+        "predicted_types": [
+          "나이",
+          "겸양"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-005",
+        "input": "아이가 어린이집에서 또래보다 좀 큰 편이에요",
+        "expected": false,
+        "predicted": true,
+        "expected_type": "none",
+        "predicted_types": [
+          "나이"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-008",
+        "input": "보육원 선생님한테 인사를 어떻게 해야 할지 모르겠어요",
+        "expected": false,
+        "predicted": true,
+        "expected_type": "none",
+        "predicted_types": [
+          "문화어휘",
+          "경어"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-023",
+        "input": "이 부분에 대해서 한번 의견 주실 수 있을까요?",
+        "expected": false,
+        "predicted": true,
+        "expected_type": "none",
+        "predicted_types": [
+          "경어"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-026",
+        "input": "오늘 회식 못 갈 것 같아요",
+        "expected": true,
+        "predicted": true,
+        "expected_type": "경어",
+        "predicted_types": [
+          "문화어휘"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-030",
+        "input": "이번 프로젝트 진짜 힘들었어요",
+        "expected": true,
+        "predicted": false,
+        "expected_type": "감정표현",
+        "predicted_types": [],
+        "error": null
+      },
+      {
+        "id": "GD-033",
+        "input": "이 부분 다시 한번 확인 부탁드려요",
+        "expected": false,
+        "predicted": true,
+        "expected_type": "none",
+        "predicted_types": [
+          "경어"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-034",
+        "input": "선배가 알려준 방법대로 했더니 잘 됐어요",
+        "expected": true,
+        "predicted": false,
+        "expected_type": "가족호칭",
+        "predicted_types": [],
+        "error": null
+      },
+      {
+        "id": "GD-064",
+        "input": "주민세 내러 시청 가야 해요",
+        "expected": true,
+        "predicted": true,
+        "expected_type": "감정표현",
+        "predicted_types": [
+          "문화어휘",
+          "문화어휘"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-065",
+        "input": "건강보험증 잃어버려서 재발급 받으러 왔어요",
+        "expected": false,
+        "predicted": true,
+        "expected_type": "none",
+        "predicted_types": [
+          "문화어휘"
+        ],
+        "error": null
+      },
+      {
+        "id": "GD-067",
+        "input": "전입신고 하려고 왔는데요",
+        "expected": false,
+        "predicted": true,
+        "expected_type": "none",
+        "predicted_types": [
+          "문화어휘"
+        ],
+        "error": null
+      }
+    ],
+    "error_cases": []
+  },
+  "results": [
+    {
+      "case_id": "GD-001",
+      "input_kr": "저희 아이는 얼마전에 22개월이 되었어요",
+      "expected_needs": true,
+      "expected_type": "수치",
+      "predicted_needs": true,
+      "predicted_types": [
+        "나이",
+        "겸양"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": false,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "age",
+            "detected": "22개월",
+            "issue": "일본식 만 나이로 환산 필요 (22개월 ≈ 1세 10개月)",
+            "severity": "high"
+          },
+          {
+            "type": "humility",
+            "detected": "저희 아이는 얼마전에 22개월이 되었어요",
+            "issue": "자녀 성장 표현을 일본식 겸양으로 톤다운 권장",
+            "severity": "low"
+          }
+        ]
+      },
+      "latency_ms": 2941
+    },
+    {
+      "case_id": "GD-002",
+      "input_kr": "우리 남편이 요즘 야근이 많아서 힘들어해요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": true,
+      "predicted_types": [
+        "가족호칭"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "family_title",
+            "detected": "우리 남편",
+            "issue": "타인에게 자신의 남편을 말할 때 겸양형 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 1564
+    },
+    {
+      "case_id": "GD-003",
+      "input_kr": "우리 아이가 정말 똑똑해서 한 번 보고 다 외워요",
+      "expected_needs": true,
+      "expected_type": "겸양",
+      "predicted_needs": true,
+      "predicted_types": [
+        "겸양"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "humility",
+            "detected": "우리 아이가 정말 똑똑해서 한 번 보고 다 외워요",
+            "issue": "자녀 자랑을 일본식으로 톤다운 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 1731
+    },
+    {
+      "case_id": "GD-004",
+      "input_kr": "우리 엄마가 이번 주에 일본에 오세요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": true,
+      "predicted_types": [
+        "가족호칭"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "family_title",
+            "detected": "우리 엄마",
+            "issue": "타인에게 자기 어머니를 말할 때 겸양형 사용 필요",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1854
+    },
+    {
+      "case_id": "GD-005",
+      "input_kr": "아이가 어린이집에서 또래보다 좀 큰 편이에요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": true,
+      "predicted_types": [
+        "나이"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "age",
+            "detected": "또래보다 좀 큰 편",
+            "issue": "한국식 세는 나이 기준 표현. 일본은 만 나이 기준으로 신체 발달 단계 표현 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 2181
+    },
+    {
+      "case_id": "GD-006",
+      "input_kr": "우리 아빠가 환갑이라 한국에 다녀왔어요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": true,
+      "predicted_types": [
+        "가족호칭",
+        "나이"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "family_title",
+            "detected": "우리 아빠",
+            "issue": "타인에게 자기 아버지를 말할 때 겸양형 사용 필요",
+            "severity": "medium"
+          },
+          {
+            "type": "age",
+            "detected": "환갑",
+            "issue": "환갑 축하 표현이 일본에서는 다른 맥락 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 2392
+    },
+    {
+      "case_id": "GD-007",
+      "input_kr": "아이가 이번에 5살이 되었어요",
+      "expected_needs": true,
+      "expected_type": "나이",
+      "predicted_needs": true,
+      "predicted_types": [
+        "나이"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "age",
+            "detected": "5살",
+            "issue": "한국식 세는 나이를 일본식 만 나이로 환산 필요",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1560
+    },
+    {
+      "case_id": "GD-008",
+      "input_kr": "보육원 선생님한테 인사를 어떻게 해야 할지 모르겠어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘",
+        "경어"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "보육원",
+            "issue": "일본에서는 보육원을 '保育園'이라고 부릅니다",
+            "severity": "high"
+          },
+          {
+            "type": "keigo",
+            "detected": "선생님한테 인사를 어떻게 해야 할지",
+            "issue": "보육원 선생님과의 인사는 경어 표현이 필요합니다",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 1919
+    },
+    {
+      "case_id": "GD-009",
+      "input_kr": "우리 시어머니가 다음달에 일본 오신대요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": true,
+      "predicted_types": [
+        "가족호칭"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "family_title",
+            "detected": "우리 시어머니",
+            "issue": "타인에게 자기 시어머니를 말할 때 겸양형 필요",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 2015
+    },
+    {
+      "case_id": "GD-010",
+      "input_kr": "아이 사진이 너무 잘 나왔는데 SNS에 올려도 될지 고민이에요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1037
+    },
+    {
+      "case_id": "GD-011",
+      "input_kr": "아이가 38도 열이 나서 병원에 가야 할 것 같아요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1081
+    },
+    {
+      "case_id": "GD-012",
+      "input_kr": "아이가 어린이집 친구들이랑 잘 못 어울리는 것 같아서 걱정이에요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1014
+    },
+    {
+      "case_id": "GD-013",
+      "input_kr": "우리 며느리가 다음달에 출산해요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": true,
+      "predicted_types": [
+        "가족호칭"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "family_title",
+            "detected": "우리 며느리",
+            "issue": "타인에게 자기 가족을 말할 때 겸양형 필요",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1818
+    },
+    {
+      "case_id": "GD-014",
+      "input_kr": "아이가 이가 늦게 나는 편이에요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1148
+    },
+    {
+      "case_id": "GD-015",
+      "input_kr": "내일 아이 입학식인데 어떤 옷을 입혀야 할지 모르겠어요",
+      "expected_needs": true,
+      "expected_type": "문화어휘",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "입학식",
+            "issue": "한국 초등학교 입학식 vs 일본 보육원/유치원 입원식 개념 차이",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1539
+    },
+    {
+      "case_id": "GD-016",
+      "input_kr": "어제 아이 백일잔치 했어요",
+      "expected_needs": true,
+      "expected_type": "문화어휘",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "백일잔치",
+            "issue": "한국식 의례. 일본에서는 お食い初め(생후 100일경 식사 의례)로 표현",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1622
+    },
+    {
+      "case_id": "GD-017",
+      "input_kr": "아이가 오늘 처음으로 혼자 신발 신었어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4312
+    },
+    {
+      "case_id": "GD-018",
+      "input_kr": "우리 둘째가 첫째보다 키가 더 커요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": true,
+      "predicted_types": [
+        "가족호칭"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "family_title",
+            "detected": "우리 둘째가 첫째보다",
+            "issue": "타인에게 자녀를 말할 때 '우리'는 생략하고 '下の子/上の子' 사용",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 1662
+    },
+    {
+      "case_id": "GD-019",
+      "input_kr": "아이가 요즘 잠을 잘 못 자서 저도 힘들어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1145
+    },
+    {
+      "case_id": "GD-020",
+      "input_kr": "아이가 한국말을 안 쓰려고 해서 걱정이에요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1361
+    },
+    {
+      "case_id": "GD-021",
+      "input_kr": "이 디자인 좀 수정해주세요",
+      "expected_needs": true,
+      "expected_type": "경어",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "이 디자인 좀 수정해주세요",
+            "issue": "직장 상황에서 상사/거래처에 부탁할 때 더 정중한 경어 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 2727
+    },
+    {
+      "case_id": "GD-022",
+      "input_kr": "회의는 몇 시부터예요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1294
+    },
+    {
+      "case_id": "GD-023",
+      "input_kr": "이 부분에 대해서 한번 의견 주실 수 있을까요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "의견 주실 수 있을까요",
+            "issue": "직장 상황에서 상사/선배에게 부탁할 때 경어 수준 상향 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 1841
+    },
+    {
+      "case_id": "GD-024",
+      "input_kr": "수고하셨어요",
+      "expected_needs": true,
+      "expected_type": "경어",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "수고하셨어요",
+            "issue": "일본식 직장 인사로 'お疲れ様でした'가 표준",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 2437
+    },
+    {
+      "case_id": "GD-025",
+      "input_kr": "다음 주 월요일까지 마감이라 좀 빡빡할 것 같아요",
+      "expected_needs": true,
+      "expected_type": "감정표현",
+      "predicted_needs": true,
+      "predicted_types": [
+        "감정표현"
+      ],
+      "predicted_severity": "low",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "emotion",
+            "detected": "빡빡할 것 같아요",
+            "issue": "한국식 강조어를 일본식 표현으로 변환 필요",
+            "severity": "low"
+          }
+        ]
+      },
+      "latency_ms": 1414
+    },
+    {
+      "case_id": "GD-026",
+      "input_kr": "오늘 회식 못 갈 것 같아요",
+      "expected_needs": true,
+      "expected_type": "경어",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": false,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "회식",
+            "issue": "한국식 회사 문화용어. 일본에서는 '飲み会'로 표현",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 6249
+    },
+    {
+      "case_id": "GD-027",
+      "input_kr": "업무 메일 답장 보냈어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 996
+    },
+    {
+      "case_id": "GD-028",
+      "input_kr": "이 일정 좀 조정해도 될까요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 7161
+    },
+    {
+      "case_id": "GD-029",
+      "input_kr": "부장님이 회의 참석하라고 하셨어요",
+      "expected_needs": true,
+      "expected_type": "경어",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "부장님이 회의 참석하라고 하셨어요",
+            "issue": "상사 지시를 전달할 때 경어 표현 필요",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 4270
+    },
+    {
+      "case_id": "GD-030",
+      "input_kr": "이번 프로젝트 진짜 힘들었어요",
+      "expected_needs": true,
+      "expected_type": "감정표현",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 3582
+    },
+    {
+      "case_id": "GD-031",
+      "input_kr": "거래처에서 자료 보내준다고 했어요",
+      "expected_needs": true,
+      "expected_type": "경어",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "자료 보내준다고 했어요",
+            "issue": "거래처 발언 전달 시 경어 필요",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 5302
+    },
+    {
+      "case_id": "GD-032",
+      "input_kr": "오늘 점심 같이 드실래요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1237
+    },
+    {
+      "case_id": "GD-033",
+      "input_kr": "이 부분 다시 한번 확인 부탁드려요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "다시 한번 확인 부탁드려요",
+            "issue": "직장 상황에서 더 정중한 경어 표현 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 7315
+    },
+    {
+      "case_id": "GD-034",
+      "input_kr": "선배가 알려준 방법대로 했더니 잘 됐어요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1071
+    },
+    {
+      "case_id": "GD-035",
+      "input_kr": "회사 분위기가 한국이랑 너무 달라요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 6666
+    },
+    {
+      "case_id": "GD-036",
+      "input_kr": "신입 사원인데 일을 너무 잘해요",
+      "expected_needs": true,
+      "expected_type": "겸양",
+      "predicted_needs": true,
+      "predicted_types": [
+        "겸양"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "humility",
+            "detected": "신입 사원인데 일을 너무 잘해요",
+            "issue": "일본 직장 문화에서 신입의 능력을 직접 칭찬하는 것은 겸양이 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 5234
+    },
+    {
+      "case_id": "GD-037",
+      "input_kr": "오늘 회의록 작성 제가 할게요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1137
+    },
+    {
+      "case_id": "GD-038",
+      "input_kr": "이번 분기 매출이 30% 늘었어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 6794
+    },
+    {
+      "case_id": "GD-039",
+      "input_kr": "사장님 결재 받으려고 기다리는 중이에요",
+      "expected_needs": true,
+      "expected_type": "경어",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "사장님 결재 받으려고",
+            "issue": "직장 상황에서 상사 행위를 더 정중하게 표현 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 5073
+    },
+    {
+      "case_id": "GD-040",
+      "input_kr": "이메일 답장이 일주일째 안 와서 답답해요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 995
+    },
+    {
+      "case_id": "GD-041",
+      "input_kr": "오늘 점심 뭐 먹을까요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 6931
+    },
+    {
+      "case_id": "GD-042",
+      "input_kr": "비가 와서 우산을 챙겨야 할 것 같아요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 3608
+    },
+    {
+      "case_id": "GD-043",
+      "input_kr": "와 진짜 대박이에요 이 가게",
+      "expected_needs": true,
+      "expected_type": "감정표현",
+      "predicted_needs": true,
+      "predicted_types": [
+        "감정표현"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "emotion",
+            "detected": "와 진짜 대박이에요",
+            "issue": "한국식 감탄사·강조어를 일본식으로 변환 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 4928
+    },
+    {
+      "case_id": "GD-044",
+      "input_kr": "어제 친구랑 한국 식당 갔는데 진짜 맛있었어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 3387
+    },
+    {
+      "case_id": "GD-045",
+      "input_kr": "오늘 날씨 너무 좋아서 산책 가고 싶어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4620
+    },
+    {
+      "case_id": "GD-046",
+      "input_kr": "어머 너무 예뻐요",
+      "expected_needs": true,
+      "expected_type": "감정표현",
+      "predicted_needs": true,
+      "predicted_types": [
+        "감정표현"
+      ],
+      "predicted_severity": "low",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "emotion",
+            "detected": "어머",
+            "issue": "한국식 감탄사. 일본식으로는 わぁ, あら 등으로 변환 필요",
+            "severity": "low"
+          }
+        ]
+      },
+      "latency_ms": 4609
+    },
+    {
+      "case_id": "GD-047",
+      "input_kr": "이번 주말에 시간 괜찮으세요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4423
+    },
+    {
+      "case_id": "GD-048",
+      "input_kr": "전철이 지연돼서 늦을 것 같아요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 3408
+    },
+    {
+      "case_id": "GD-049",
+      "input_kr": "한국에서 라면 사 왔는데 같이 드실래요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4922
+    },
+    {
+      "case_id": "GD-050",
+      "input_kr": "벌써 오후 3시예요? 시간 진짜 빨라요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4417
+    },
+    {
+      "case_id": "GD-051",
+      "input_kr": "오늘 갑자기 추워졌어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4537
+    },
+    {
+      "case_id": "GD-052",
+      "input_kr": "아이고 깜짝 놀랐네",
+      "expected_needs": true,
+      "expected_type": "감정표현",
+      "predicted_needs": true,
+      "predicted_types": [
+        "감정표현"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "emotion",
+            "detected": "아이고 깜짝 놀랐네",
+            "issue": "한국식 감탄사를 일본식으로 변환 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 4000
+    },
+    {
+      "case_id": "GD-053",
+      "input_kr": "이 동네 진짜 조용하고 좋네요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 3473
+    },
+    {
+      "case_id": "GD-054",
+      "input_kr": "어제 밤에 잠을 못 자서 너무 피곤해요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 5209
+    },
+    {
+      "case_id": "GD-055",
+      "input_kr": "아이고 이를 어쩌나",
+      "expected_needs": true,
+      "expected_type": "감정표현",
+      "predicted_needs": true,
+      "predicted_types": [
+        "감정표현"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "emotion",
+            "detected": "아이고",
+            "issue": "한국식 감탄사, 일본식 탄식 표현으로 변환 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 3904
+    },
+    {
+      "case_id": "GD-056",
+      "input_kr": "오늘 머리 자르러 미용실 가요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4553
+    },
+    {
+      "case_id": "GD-057",
+      "input_kr": "이 카페 분위기 너무 좋아요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 3842
+    },
+    {
+      "case_id": "GD-058",
+      "input_kr": "한국 친구가 일본 놀러 와서 같이 다닐 거예요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 5503
+    },
+    {
+      "case_id": "GD-059",
+      "input_kr": "벚꽃 보러 어디 가는 게 좋을까요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1194
+    },
+    {
+      "case_id": "GD-060",
+      "input_kr": "장 보러 마트 갔다 왔어요",
+      "expected_needs": true,
+      "expected_type": "문화어휘",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "마트",
+            "issue": "일본에서는 '마트'가 아닌 'スーパー'를 사용합니다",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 8268
+    },
+    {
+      "case_id": "GD-061",
+      "input_kr": "30평 정도 되는 아파트를 찾고 있어요",
+      "expected_needs": true,
+      "expected_type": "수치",
+      "predicted_needs": true,
+      "predicted_types": [
+        "수치"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "number_unit",
+            "detected": "30평",
+            "issue": "한국식 평 단위는 일본에서 ㎡로 환산 필요",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1929
+    },
+    {
+      "case_id": "GD-062",
+      "input_kr": "주민등록증 같은 신분증이 있나요?",
+      "expected_needs": true,
+      "expected_type": "문화어휘",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "주민등록증",
+            "issue": "일본 거주 외국인은 주민등록증 대신 재류카드 사용",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 5578
+    },
+    {
+      "case_id": "GD-063",
+      "input_kr": "은행 가서 통장 만들고 싶어요",
+      "expected_needs": true,
+      "expected_type": "문화어휘",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "통장",
+            "issue": "일본에서는 '통장' 개념이 없고 '口座(계좌)'를 사용합니다",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1590
+    },
+    {
+      "case_id": "GD-064",
+      "input_kr": "주민세 내러 시청 가야 해요",
+      "expected_needs": true,
+      "expected_type": "감정표현",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘",
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": false,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "주민세",
+            "issue": "일본에는 주민세 제도가 없음. 상황에 맞는 세금으로 변환 필요",
+            "severity": "high"
+          },
+          {
+            "type": "cultural_term",
+            "detected": "시청",
+            "issue": "일본에서는 시청(市役所)이 아닌 관공서 명칭 확인 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 7945
+    },
+    {
+      "case_id": "GD-065",
+      "input_kr": "건강보험증 잃어버려서 재발급 받으러 왔어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "건강보험증",
+            "issue": "일본에는 건강보험증 제도가 없음. 일본 거주 외국인은 국민건강보험 카드 사용",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 1782
+    },
+    {
+      "case_id": "GD-066",
+      "input_kr": "이거 어떻게 작성해야 하는지 잘 모르겠어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 4409
+    },
+    {
+      "case_id": "GD-067",
+      "input_kr": "전입신고 하려고 왔는데요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": false,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "전입신고",
+            "issue": "한국 제도명. 일본은 전입신고 대신 주소 변경 신고(転入届) 사용",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 5518
+    },
+    {
+      "case_id": "GD-068",
+      "input_kr": "월세가 7만엔인데 보증금이 너무 많이 나가요",
+      "expected_needs": true,
+      "expected_type": "수치",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘",
+        "수치"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "보증금",
+            "issue": "일본은 보증금을 敷金과 礼金으로 분리하여 표현합니다",
+            "severity": "high"
+          },
+          {
+            "type": "number_unit",
+            "detected": "월세가 7만엔",
+            "issue": "월세 금액 표현 시 일본식 통화 단위 및 관례 확인 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 2256
+    },
+    {
+      "case_id": "GD-069",
+      "input_kr": "서류 준비 다 해왔어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 5582
+    },
+    {
+      "case_id": "GD-070",
+      "input_kr": "비자 갱신은 어디서 해야 하나요?",
+      "expected_needs": true,
+      "expected_type": "문화어휘",
+      "predicted_needs": true,
+      "predicted_types": [
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "cultural_term",
+            "detected": "비자",
+            "issue": "일본에서는 '비자' 대신 '在留資格'이 표준 용어",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 6508
+    },
+    {
+      "case_id": "GD-071",
+      "input_kr": "오늘 처음 뵙겠습니다 잘 부탁드려요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 2042
+    },
+    {
+      "case_id": "GD-072",
+      "input_kr": "선물 가져왔어요 별 거 아니에요",
+      "expected_needs": true,
+      "expected_type": "겸양",
+      "predicted_needs": true,
+      "predicted_types": [
+        "겸양"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "humility",
+            "detected": "별 거 아니에요",
+            "issue": "일본식 겸양 표현으로 톤다운 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 4954
+    },
+    {
+      "case_id": "GD-073",
+      "input_kr": "초대해주셔서 감사합니다",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1087
+    },
+    {
+      "case_id": "GD-074",
+      "input_kr": "한국에서는 이렇게 하는데 일본은 어떻게 해요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 6687
+    },
+    {
+      "case_id": "GD-075",
+      "input_kr": "저 술 잘 못 마셔요",
+      "expected_needs": true,
+      "expected_type": "겸양",
+      "predicted_needs": true,
+      "predicted_types": [
+        "겸양"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "humility",
+            "detected": "술 잘 못 마셔요",
+            "issue": "한국식 직설적 표현을 일본식 겸양으로 톤다운 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 5329
+    },
+    {
+      "case_id": "GD-076",
+      "input_kr": "일본 온지 벌써 5년 됐어요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1086
+    },
+    {
+      "case_id": "GD-077",
+      "input_kr": "다음에 또 만나요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 7152
+    },
+    {
+      "case_id": "GD-078",
+      "input_kr": "맛있게 잘 먹었습니다",
+      "expected_needs": true,
+      "expected_type": "경어",
+      "predicted_needs": true,
+      "predicted_types": [
+        "경어"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "keigo",
+            "detected": "맛있게 잘 먹었습니다",
+            "issue": "일본식 식사 후 정형 인사 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 1533
+    },
+    {
+      "case_id": "GD-079",
+      "input_kr": "한국 음식 좋아하세요?",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 7082
+    },
+    {
+      "case_id": "GD-080",
+      "input_kr": "이거 한국에서 가져온 김치인데 드셔보세요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 994
+    },
+    {
+      "case_id": "GD-081",
+      "input_kr": "친구한테 5만원 빌려줬어요",
+      "expected_needs": true,
+      "expected_type": "수치",
+      "predicted_needs": true,
+      "predicted_types": [
+        "수치"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "number_unit",
+            "detected": "5만원",
+            "issue": "원화를 엔화로 환산 필요 (약 5000엔 정도)",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 7544
+    },
+    {
+      "case_id": "GD-082",
+      "input_kr": "키가 170cm 정도 돼요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1020
+    },
+    {
+      "case_id": "GD-083",
+      "input_kr": "한국에서 차로 2시간 거리예요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 6730
+    },
+    {
+      "case_id": "GD-084",
+      "input_kr": "월급이 300만원 정도 돼요",
+      "expected_needs": true,
+      "expected_type": "수치",
+      "predicted_needs": true,
+      "predicted_types": [
+        "수치"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "number_unit",
+            "detected": "300만원",
+            "issue": "원화를 엔화로 환산 필요 (약 30만엔 정도)",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 5092
+    },
+    {
+      "case_id": "GD-085",
+      "input_kr": "한국 친구가 한 30분 거리 살아요",
+      "expected_needs": false,
+      "expected_type": "none",
+      "predicted_needs": false,
+      "predicted_types": [],
+      "predicted_severity": null,
+      "binary_correct": true,
+      "type_correct": null,
+      "error": null,
+      "raw_response": {
+        "needs_correction": false,
+        "correction_items": []
+      },
+      "latency_ms": 1045
+    },
+    {
+      "case_id": "GD-086",
+      "input_kr": "이거 한국에서 5천원에 샀어요",
+      "expected_needs": true,
+      "expected_type": "수치",
+      "predicted_needs": true,
+      "predicted_types": [
+        "수치"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "number_unit",
+            "detected": "5천원",
+            "issue": "한국 원화를 일본 엔으로 환산 필요 (약 500엔 정도)",
+            "severity": "high"
+          }
+        ]
+      },
+      "latency_ms": 7382
+    },
+    {
+      "case_id": "GD-087",
+      "input_kr": "어머니가 올해 65세이신데 아직 일하세요",
+      "expected_needs": true,
+      "expected_type": "가족호칭",
+      "predicted_needs": true,
+      "predicted_types": [
+        "나이",
+        "가족호칭"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "age",
+            "detected": "65세",
+            "issue": "한국 나이 65세는 일본 만 나이로 64세 또는 63세로 환산 필요",
+            "severity": "high"
+          },
+          {
+            "type": "family_title",
+            "detected": "어머니가",
+            "issue": "타인에게 자기 어머니를 말할 때 '母が' 겸양형 사용",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 2383
+    },
+    {
+      "case_id": "GD-088",
+      "input_kr": "내년에 우리 첫째가 초등학교 들어가요",
+      "expected_needs": true,
+      "expected_type": "나이",
+      "predicted_needs": true,
+      "predicted_types": [
+        "나이",
+        "가족호칭"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "age",
+            "detected": "첫째가 초등학교 들어가요",
+            "issue": "한국식 입학 표현을 일본식으로 변환 필요",
+            "severity": "medium"
+          },
+          {
+            "type": "family_title",
+            "detected": "우리 첫째",
+            "issue": "타인에게 자녀를 말할 때 일본식 겸양형 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 6745
+    },
+    {
+      "case_id": "GD-089",
+      "input_kr": "조카가 올해 7살이라 초등학교 들어갔어요",
+      "expected_needs": true,
+      "expected_type": "나이",
+      "predicted_needs": true,
+      "predicted_types": [
+        "나이",
+        "문화어휘"
+      ],
+      "predicted_severity": "high",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "age",
+            "detected": "7살",
+            "issue": "한국 세는 나이 7살은 일본 만 나이 6살입니다",
+            "severity": "high"
+          },
+          {
+            "type": "cultural_term",
+            "detected": "초등학교 들어갔어요",
+            "issue": "일본은 초등학교 입학식을 '入学式'이라 하며, 동사는 '入学した'를 사용합니다",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 2431
+    },
+    {
+      "case_id": "GD-090",
+      "input_kr": "아빠가 올해 환갑이세요",
+      "expected_needs": true,
+      "expected_type": "나이",
+      "predicted_needs": true,
+      "predicted_types": [
+        "나이"
+      ],
+      "predicted_severity": "medium",
+      "binary_correct": true,
+      "type_correct": true,
+      "error": null,
+      "raw_response": {
+        "needs_correction": true,
+        "correction_items": [
+          {
+            "type": "age",
+            "detected": "환갑",
+            "issue": "한국식 환갑 개념을 일본식으로 표현 필요",
+            "severity": "medium"
+          }
+        ]
+      },
+      "latency_ms": 4805
+    }
+  ]
+}

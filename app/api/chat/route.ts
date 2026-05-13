@@ -126,6 +126,7 @@ export async function POST(req: Request) {
 
         // ── 카드 저장 (로그인 시) ─────────────────────────────
         let savedCardId: string | null = null
+        console.log('[card-save] user:', user?.id ?? 'null')
         if (user) {
           const admin = createAdminClient()
           const { data: card, error: cardError } = await admin
@@ -172,6 +173,7 @@ export async function POST(req: Request) {
           step3_grammar: translationData.step3_grammar ?? [],
           step4_culture: translationData.step4_culture ?? '',
           step5_etymology: translationData.step5_etymology ?? null,
+          _dbg_uid: user?.id ?? null,
         })
       } catch (err) {
         const message = err instanceof Error ? err.message : '알 수 없는 오류'

@@ -153,6 +153,7 @@ export async function POST(req: Request) {
 
           if (cardError) {
             console.error('[card-save] error:', cardError.code, cardError.message)
+            send({ type: 'card_error', code: cardError.code, message: cardError.message })
           } else {
             savedCardId = card?.id ?? null
             await admin.rpc('increment_api_usage', {

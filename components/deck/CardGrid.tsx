@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import MasteryBadge from '@/components/ui/MasteryBadge'
-import { Card, getMasteryStage, MasteryStage, SentencePayload } from '@/types'
+import { Card, getMasteryStage, MasteryStage, SentencePayload, EpisodePayload } from '@/types'
 
 type FilterStage = 'all' | MasteryStage
 
@@ -66,42 +66,55 @@ export default function CardGrid({ cards, onCardClick }: CardGridProps) {
 }
 
 function CardItem({ card, onClick }: { card: Card; onClick: () => void }) {
-  const payload = card.payload as SentencePayload
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
+  const dateStr = new Date(card.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
 
-  const mainJp =
-    payload.step2_versions?.casual ??
-    payload.step2_versions?.polite ??
-    ''
+  if (card.card_type === 'episode') {
+    const p = card.payload as EpisodePayload
+    const expr = p.dialogue[0]
+    return (
+      <button
+        onClick={onClick}
+        className="text-left rounded-2xl p-3 flex flex-col gap-2 active:opacity-70"
+        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
+      >
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: '#f0e9f4', color: 'var(--color-mnemonic)' }}>생활</span>
+          <span className="text-[10px] text-[var(--text-tertiary)] truncate">{p.title_kr}</span>
+        </div>
+        <div>
+          <p className="font-jp text-body-md font-medium line-clamp-1">{expr?.japanese ?? '—'}</p>
+          {expr?.reading && (
+            <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">{expr.reading}</p>
+          )}
+          {expr?.pronunciation && (
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-accent)' }}>
+              {expr.pronunciation}
+            </p>
+          )}
+        </div>
+        <p className="text-caption text-[var(--text-secondary)] line-clamp-1">{expr?.korean}</p>
+        <div className="flex items-center justify-between mt-auto pt-1">
+          <span className="text-caption text-[var(--text-tertiary)]">{dateStr}</span>
+          <MasteryBadge stage={stage} />
+        </div>
+      </button>
+    )
+  }
 
-  const dateStr = new Date(card.created_at).toLocaleDateString('ko-KR', {
-    month: 'short',
-    day: 'numeric',
-  })
+  const payload = card.payload as SentencePayload
+  const mainJp = payload.step2_versions?.[payload.recommended_version] ?? payload.step2_versions?.casual ?? ''
 
   return (
     <button
       onClick={onClick}
       className="text-left rounded-2xl p-3 flex flex-col gap-2 active:opacity-70 transition-opacity"
-      style={{
-        backgroundColor: 'var(--color-surface)',
-        border: '1px solid var(--color-hairline)',
-      }}
+      style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
     >
-      {/* 한국어 입력 */}
-      <p className="text-caption text-[var(--text-secondary)] line-clamp-1">
-        {payload.korean_input}
-      </p>
-
-      {/* 일본어 번역 */}
-      <p
-        className="text-body-md font-jp line-clamp-2 leading-snug"
-        style={{ color: 'var(--text-primary)' }}
-      >
+      <p className="text-caption text-[var(--text-secondary)] line-clamp-1">{payload.korean_input}</p>
+      <p className="text-body-md font-jp line-clamp-2 leading-snug" style={{ color: 'var(--text-primary)' }}>
         {mainJp || '—'}
       </p>
-
-      {/* 하단: 날짜 + 마스터리 */}
       <div className="flex items-center justify-between mt-auto pt-1">
         <span className="text-caption text-[var(--text-tertiary)]">{dateStr}</span>
         <MasteryBadge stage={stage} />

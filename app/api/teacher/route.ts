@@ -1,5 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { MODEL } from '@/lib/anthropic'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { createAdminClient } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
@@ -17,6 +21,26 @@ const HARU_SYSTEM = `당신은 일본 거주 한국인을 위한 일본어 학�
 - 마크다운 기호(*, #, -)는 절대 쓰지 마세요. 줄바꿈만 사용하세요`
 
 export async function POST(req: Request) {
+  const cookieStore = await cookies()
+  const supabaseServer = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+  )
+  const { data: { user } } = await supabaseServer.auth.getUser()
+
+  if (!user) {
+    return Response.json({ error: '로그인이 필요합니다' }, { status: 401 })
+  }
+
+  const { allowed } = await checkRateLimit(user.id)
+  if (!allowed) {
+    return Response.json(
+      { error: '오늘 사용 한도(50회)에 도달했어요. 내일 다시 시도해주세요.' },
+      { status: 429 }
+    )
+  }
+
   const body = await req.json().catch(() => ({}))
   const { korean_input, step2_versions, step3_grammar, step4_culture, recommended_version } = body
 
@@ -42,6 +66,11 @@ ${step4_culture ? `문화 맥락: ${step4_culture}` : ''}`
     max_tokens: 400,
     system: HARU_SYSTEM,
     messages: [{ role: 'user', content: userPrompt }],
+  })
+
+  await createAdminClient().rpc('increment_api_usage', {
+    p_user_id: user.id,
+    p_date: new Date().toISOString().slice(0, 10),
   })
 
   const readable = new ReadableStream({

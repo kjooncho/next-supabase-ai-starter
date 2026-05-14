@@ -49,14 +49,13 @@ export async function POST(req: Request) {
 
   // 로그인 유저 rate limit 확인
   if (user) {
-    const { allowed, remaining } = await checkRateLimit(user.id)
+    const { allowed } = await checkRateLimit(user.id)
     if (!allowed) {
       return Response.json(
         { error: '오늘 번역 한도(50회)에 도달했어요. 내일 다시 시도해주세요.' },
         { status: 429 }
       )
     }
-    void remaining
   }
 
   const stream = new ReadableStream({

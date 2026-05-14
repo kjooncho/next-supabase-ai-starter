@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, SentencePayload, getMasteryStage } from '@/types'
+import { Card, SentencePayload, EpisodePayload, getMasteryStage } from '@/types'
 import { createBrowserSupabase } from '@/lib/supabase'
 import RealUseForm from './RealUseForm'
 
@@ -27,12 +27,7 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
   const [saving, setSaving] = useState(false)
 
   const card = cards[index]
-  const payload = card.payload as SentencePayload
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
-
-  const mainJp = payload.step2_versions?.[payload.recommended_version] ?? ''
-  const reading = payload.step5_etymology?.reading ?? ''
-  const kanji = payload.step5_etymology?.kanji ?? ''
 
   const go = (dir: -1 | 1) => {
     const next = index + dir
@@ -50,8 +45,29 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
     if (index < cards.length - 1) setIndex(index + 1)
   }
 
-  const verLabel = payload.recommended_version === 'casual' ? '구어체'
-    : payload.recommended_version === 'polite' ? '정중체' : '격식체'
+  const isEpisode = card.card_type === 'episode'
+
+  // Episode card content
+  let mainJp = ''
+  let reading = ''
+  let pronunciation = ''
+  let korean = ''
+  let contextLabel = ''
+
+  if (isEpisode) {
+    const p = card.payload as EpisodePayload
+    const d = p.dialogue[0] as { japanese: string; reading?: string; pronunciation?: string; korean: string }
+    mainJp = d?.japanese ?? ''
+    reading = d?.reading ?? ''
+    pronunciation = d?.pronunciation ?? ''
+    korean = d?.korean ?? ''
+    contextLabel = p.title_kr
+  } else {
+    const payload = card.payload as SentencePayload
+    mainJp = payload.step2_versions?.[payload.recommended_version] ?? ''
+    reading = payload.step5_etymology?.reading ?? ''
+    contextLabel = payload.korean_input
+  }
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -65,9 +81,7 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
             <path d="M15 18l-6-6 6-6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <span className="text-white text-body font-medium">
-          {index + 1} / {cards.length}
-        </span>
+        <span className="text-white text-body font-medium">{index + 1} / {cards.length}</span>
         <div className="w-6" />
       </div>
 
@@ -75,36 +89,34 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
       <div className="h-1 flex-shrink-0" style={{ backgroundColor: 'var(--color-hairline)' }}>
         <div
           className="h-full transition-all duration-300"
-          style={{
-            width: `${((index + 1) / cards.length) * 100}%`,
-            backgroundColor: 'var(--color-accent)',
-          }}
+          style={{ width: `${((index + 1) / cards.length) * 100}%`, backgroundColor: 'var(--color-accent)' }}
         />
       </div>
 
       {/* 카드 본문 */}
       <div className="flex-1 overflow-y-auto px-5 py-6 flex flex-col gap-4">
-        {/* 원문 (컨텍스트) */}
-        <p className="text-caption text-[var(--text-tertiary)] text-center">{payload.korean_input}</p>
+        {/* 컨텍스트 레이블 */}
+        <p className="text-caption text-[var(--text-tertiary)] text-center">{contextLabel}</p>
 
         {/* 메인 카드 */}
         <div
           className="rounded-3xl px-6 py-8 flex flex-col items-center gap-3"
           style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
         >
-          {/* 추천 버전 레이블 */}
-          <span
-            className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-            style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
-          >
-            {verLabel}
-          </span>
+          {isEpisode && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f0e9f4', color: 'var(--color-mnemonic)' }}>
+              생활 표현
+            </span>
+          )}
+          {!isEpisode && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}>
+              {(card.payload as SentencePayload).recommended_version === 'casual' ? '구어체' : (card.payload as SentencePayload).recommended_version === 'polite' ? '정중체' : '격식체'}
+            </span>
+          )}
 
           {/* 메인 번역 */}
           <div className="flex items-center gap-3">
-            <p className="font-jp text-[32px] font-bold text-center text-[var(--text-primary)]">
-              {mainJp}
-            </p>
+            <p className="font-jp text-[32px] font-bold text-center text-[var(--text-primary)]">{mainJp}</p>
             <button
               onClick={() => speak(mainJp)}
               className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60"
@@ -117,61 +129,55 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
             </button>
           </div>
 
-          {/* 발음 (어원에서) */}
+          {/* 요미가나 + 한국어 발음 */}
           {reading && (
-            <p className="text-caption text-[var(--text-tertiary)] text-center">
-              ({reading}) {kanji && <span className="font-jp">{kanji}</span>}
-            </p>
+            <p className="text-caption text-[var(--text-tertiary)] text-center">({reading})</p>
+          )}
+          {pronunciation && (
+            <p className="text-caption text-center" style={{ color: 'var(--color-accent)' }}>{pronunciation}</p>
+          )}
+
+          {/* episode 카드: 한국어 뜻 */}
+          {isEpisode && korean && (
+            <p className="text-body text-[var(--text-secondary)] text-center mt-1">{korean}</p>
           )}
         </div>
 
-        {/* 구조 대응 */}
-        {payload.step1_structure?.length > 0 && (
-          <div>
-            <p className="text-caption text-[var(--color-accent)] font-medium mb-1.5">구조</p>
-            <div className="flex flex-wrap gap-2">
-              {payload.step1_structure.map((item, i) => (
-                <div
-                  key={i}
-                  className="rounded-lg px-3 py-1.5 text-center"
-                  style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
-                >
-                  <p className="text-[10px] text-[var(--text-tertiary)]">{item.korean}</p>
-                  <p className="font-jp text-caption font-medium">{item.japanese}</p>
+        {/* sentence 카드: 구조 대응 */}
+        {!isEpisode && (() => {
+          const p = card.payload as SentencePayload
+          return (
+            <>
+              {p.step1_structure?.length > 0 && (
+                <div>
+                  <p className="text-caption text-[var(--color-accent)] font-medium mb-1.5">구조</p>
+                  <div className="flex flex-wrap gap-2">
+                    {p.step1_structure.map((item, i) => (
+                      <div key={i} className="rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}>
+                        <p className="text-[10px] text-[var(--text-tertiary)]">{item.korean}</p>
+                        <p className="font-jp text-caption font-medium">{item.japanese}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
+              {p.step3_grammar?.[0] && (
+                <div className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}>
+                  <p className="text-caption font-medium">{p.step3_grammar[0].point_name}</p>
+                  <p className="text-caption text-[var(--text-secondary)] mt-0.5 leading-relaxed">{p.step3_grammar[0].explanation}</p>
+                  {p.step3_grammar[0].examples?.[0] && (
+                    <p className="text-caption font-jp text-[var(--text-tertiary)] mt-1">· {p.step3_grammar[0].examples[0]}</p>
+                  )}
+                </div>
+              )}
+            </>
+          )
+        })()}
 
-        {/* 문법 첫 번째 포인트 */}
-        {payload.step3_grammar?.[0] && (
-          <div
-            className="rounded-xl px-4 py-3"
-            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
-          >
-            <p className="text-caption font-medium">{payload.step3_grammar[0].point_name}</p>
-            <p className="text-caption text-[var(--text-secondary)] mt-0.5 leading-relaxed">
-              {payload.step3_grammar[0].explanation}
-            </p>
-            {payload.step3_grammar[0].examples?.[0] && (
-              <p className="text-caption font-jp text-[var(--text-tertiary)] mt-1">
-                · {payload.step3_grammar[0].examples[0]}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* 마스터리 단계 표시 */}
+        {/* 마스터리 단계 */}
         <div className="flex items-center justify-center gap-2">
           {['learning', 'mastered', 'real-use', 'conquered'].map((s) => (
-            <div
-              key={s}
-              className="w-2 h-2 rounded-full"
-              style={{
-                backgroundColor: stage === s ? 'var(--color-accent)' : 'var(--color-hairline)',
-              }}
-            />
+            <div key={s} className="w-2 h-2 rounded-full" style={{ backgroundColor: stage === s ? 'var(--color-accent)' : 'var(--color-hairline)' }} />
           ))}
           <p className="text-[10px] text-[var(--text-tertiary)] ml-1">
             {stage === 'learning' ? '학습중' : stage === 'mastered' ? '숙달완료' : stage === 'real-use' ? '써봤어요' : '완전정복'}
@@ -181,40 +187,27 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
 
       {/* 하단 액션 */}
       <div className="px-5 pb-[34px] flex flex-col gap-2 flex-shrink-0" style={{ borderTop: '1px solid var(--color-hairline)' }}>
-        {/* prev / next */}
         <div className="flex items-center justify-between py-2">
-          <button
-            onClick={() => go(-1)}
-            disabled={index === 0}
-            className="flex items-center gap-1 text-caption text-[var(--text-secondary)] disabled:opacity-30 active:opacity-60"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <button onClick={() => go(-1)} disabled={index === 0} className="flex items-center gap-1 text-caption text-[var(--text-secondary)] disabled:opacity-30 active:opacity-60">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
             이전
           </button>
-
-          <button
-            onClick={() => setShowRealUse(true)}
-            className="text-caption font-medium px-4 py-1.5 rounded-full active:opacity-70"
-            style={{ backgroundColor: 'var(--color-tag-bg)', color: 'var(--text-secondary)' }}
-          >
-            써봤어요 ✍️
-          </button>
-
-          <button
-            onClick={() => go(1)}
-            disabled={index === cards.length - 1}
-            className="flex items-center gap-1 text-caption text-[var(--text-secondary)] disabled:opacity-30 active:opacity-60"
-          >
+          {!isEpisode && (
+            <button
+              onClick={() => setShowRealUse(true)}
+              className="text-caption font-medium px-4 py-1.5 rounded-full active:opacity-70"
+              style={{ backgroundColor: 'var(--color-tag-bg)', color: 'var(--text-secondary)' }}
+            >
+              써봤어요 ✍️
+            </button>
+          )}
+          {isEpisode && <div className="w-[80px]" />}
+          <button onClick={() => go(1)} disabled={index === cards.length - 1} className="flex items-center gap-1 text-caption text-[var(--text-secondary)] disabled:opacity-30 active:opacity-60">
             다음
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
           </button>
         </div>
 
-        {/* 복습 / 숙달 버튼 */}
         <div className="flex gap-2">
           <button
             onClick={() => go(1)}
@@ -239,10 +232,7 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
         <RealUseForm
           card={card}
           onClose={() => setShowRealUse(false)}
-          onSave={(updated) => {
-            onUpdate(updated)
-            setShowRealUse(false)
-          }}
+          onSave={(updated) => { onUpdate(updated); setShowRealUse(false) }}
         />
       )}
     </div>

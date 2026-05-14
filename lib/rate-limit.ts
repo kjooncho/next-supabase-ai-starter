@@ -29,9 +29,3 @@ export async function checkRateLimit(
   return { allowed: true, remaining: DAILY_LIMIT - currentCount }
 }
 
-export async function incrementUsage(userId: string): Promise<void> {
-  const supabase = createAdminClient()
-  const today = new Date().toISOString().slice(0, 10)
-
-  await supabase.rpc('increment_api_usage', { p_user_id: userId, p_date: today })
-}

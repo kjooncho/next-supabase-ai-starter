@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation'
 
 const tabs = [
   { href: '/', label: '채팅', icon: '💬' },
-  { href: '/calendar', label: '캘린더', icon: '📅', disabled: true },
-  { href: '/life', label: '생활', icon: '🏠', disabled: true },
+  { href: '/map', label: '지도', icon: '🗺️' },
+  { href: '/life', label: '생활', icon: '🏠' },
   { href: '/deck', label: '내 카드', icon: '📚' },
 ] as const
 
@@ -20,20 +20,6 @@ export default function TabBar() {
     >
       {tabs.map((tab) => {
         const isActive = pathname === tab.href
-        const isDisabled = 'disabled' in tab && tab.disabled
-
-        if (isDisabled) {
-          return (
-            <div
-              key={tab.href}
-              className="flex-1 flex flex-col items-center gap-0.5 opacity-30 cursor-not-allowed"
-            >
-              <span className="text-xl leading-none">{tab.icon}</span>
-              <span className="text-caption text-[var(--text-tertiary)]">{tab.label}</span>
-            </div>
-          )
-        }
-
         return (
           <Link
             key={tab.href}

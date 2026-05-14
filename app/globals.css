@@ -64,3 +64,7 @@ body {
 
 /* 일본어 폰트 */
 .font-jp { font-family: 'Noto Serif JP', serif; }
+
+/* 스크롤바 숨김 (필터 탭 등) */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

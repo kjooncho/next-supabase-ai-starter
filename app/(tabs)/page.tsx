@@ -8,13 +8,7 @@ import StepIndicator from '@/components/chat/StepIndicator'
 import TranslationResult, { TranslationResultData } from '@/components/chat/TranslationResult'
 import { createBrowserSupabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
-import { ChatRole, CorrectionItem, SentencePayload, TranslationVersion } from '@/types'
-
-interface TranslationVersions {
-  casual: string
-  polite: string
-  formal: string
-}
+import { ChatRole, CorrectionItem } from '@/types'
 
 type Message =
   | { id: string; kind: 'bubble'; role: ChatRole; text: string }

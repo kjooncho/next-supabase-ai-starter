@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createBrowserSupabase } from '@/lib/supabase'
 import { Card, getMasteryStage } from '@/types'
 import CardGrid from '@/components/deck/CardGrid'
@@ -78,19 +79,28 @@ export default function DeckPage() {
   return (
     <div className="flex flex-col h-full">
       <header
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center px-4 z-10"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center justify-between px-4 z-10"
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <span className="text-white text-h2 font-bold">내 카드</span>
-        {cards.length > 0 && (
-          <button
-            onClick={() => setFlashcardIndex(0)}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/teacher"
             className="text-caption px-3 py-1 rounded-full font-medium active:opacity-70"
             style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff' }}
           >
-            학습 시작 →
-          </button>
-        )}
+            🎓 선생님 모드
+          </Link>
+          {cards.length > 0 && (
+            <button
+              onClick={() => setFlashcardIndex(0)}
+              className="text-caption px-3 py-1 rounded-full font-medium active:opacity-70"
+              style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff' }}
+            >
+              학습 시작 →
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">

@@ -1,5 +1,4 @@
-// 데이터 모델 전체 정의는 data-model/schemas.ts (Zod) 참조
-// 이 파일은 컴포넌트/API에서 사용하는 핵심 타입만 재export
+// 컴포넌트/API에서 사용하는 핵심 타입 정의
 
 export type CardType = 'sentence' | 'calendar' | 'episode'
 export type LearningStatus = 'learning' | 'mastered'
@@ -91,6 +90,8 @@ export interface EpisodePayload {
   dialogue: Array<{
     speaker: 'grandma' | 'user' | 'narrator'
     japanese: string
+    reading?: string
+    pronunciation?: string
     korean: string
   }>
 }

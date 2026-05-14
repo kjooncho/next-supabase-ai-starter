@@ -72,7 +72,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: 'var(--color-bg)' }}>
+    <div className="fixed inset-0 z-[9999] flex flex-col" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* 헤더 */}
       <div
         className="flex items-center px-4 h-[56px] flex-shrink-0"
@@ -88,7 +88,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
       </div>
 
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto pb-[34px]">
+      <div className="flex-1 overflow-y-auto pb-[48px]">
         {/* 완료 배너 */}
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center gap-2 mb-1">

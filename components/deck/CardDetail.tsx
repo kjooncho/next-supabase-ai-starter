@@ -54,7 +54,7 @@ export default function CardDetail({ card, onClose, onUpdate }: CardDetailProps)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end"
+      className="fixed inset-0 z-[9999] flex flex-col justify-end"
       style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
       onClick={onClose}
     >

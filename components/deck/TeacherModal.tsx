@@ -59,7 +59,7 @@ export default function TeacherModal({ card, onClose }: TeacherModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col justify-end"
+      className="fixed inset-0 z-[10000] flex flex-col justify-end"
       style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={onClose}
     >

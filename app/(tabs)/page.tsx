@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation'
 import ChatBubble from '@/components/chat/ChatBubble'
 import InputBar from '@/components/chat/InputBar'
 import StepIndicator from '@/components/chat/StepIndicator'
-import CardDetail from '@/components/deck/CardDetail'
+import TranslationResult, { TranslationResultData } from '@/components/chat/TranslationResult'
 import { createBrowserSupabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
-import { ChatRole, CorrectionItem, Card, SentencePayload, TranslationVersion } from '@/types'
+import { ChatRole, CorrectionItem, SentencePayload, TranslationVersion } from '@/types'
 
 interface TranslationVersions {
   casual: string
@@ -17,21 +17,23 @@ interface TranslationVersions {
 }
 
 type Message =
-  | { id: string; kind: 'bubble'; role: ChatRole; text: string; cardId?: string; card?: Card; isTranslation?: boolean }
+  | { id: string; kind: 'bubble'; role: ChatRole; text: string }
   | { id: string; kind: 'correction'; items: CorrectionItem[] }
   | { id: string; kind: 'loading' }
+  | { id: string; kind: 'translation-result'; data: TranslationResultData }
 
 type State = {
   messages: Message[]
   isLoading: boolean
   currentStep: number
+  pendingCorrection: { needs_correction: boolean; correction_items: CorrectionItem[] } | null
 }
 
 type Action =
   | { type: 'SUBMIT'; text: string }
   | { type: 'SET_STEP'; step: number }
   | { type: 'SET_CORRECTION'; data: { needs_correction: boolean; correction_items: CorrectionItem[] } }
-  | { type: 'DONE'; versions: TranslationVersions; recommended: string; cardId: string | null; card?: Card }
+  | { type: 'DONE'; data: TranslationResultData }
   | { type: 'ERROR'; message: string }
   | { type: 'RESTORE'; messages: Message[] }
 
@@ -49,18 +51,18 @@ function reducer(state: State, action: Action): State {
         ],
         isLoading: true,
         currentStep: 0,
+        pendingCorrection: null,
       }
 
     case 'SET_STEP':
       return { ...state, currentStep: action.step }
 
     case 'SET_CORRECTION': {
-      if (!action.data.needs_correction || action.data.correction_items.length === 0) {
-        return state
-      }
+      const next = { ...state, pendingCorrection: action.data }
+      if (!action.data.needs_correction || action.data.correction_items.length === 0) return next
       const withoutLoading = state.messages.filter((m) => m.id !== LOADING_ID)
       return {
-        ...state,
+        ...next,
         messages: [
           ...withoutLoading,
           { id: crypto.randomUUID(), kind: 'correction', items: action.data.correction_items },
@@ -69,36 +71,17 @@ function reducer(state: State, action: Action): State {
       }
     }
 
-    case 'DONE': {
-      const ver = (action.recommended ?? 'casual') as keyof TranslationVersions
-      const main = action.versions?.[ver] ?? ''
-      const others = Object.entries(action.versions ?? {})
-        .filter(([k]) => k !== ver)
-        .map(([k, v]) => `${k === 'casual' ? '구어체' : k === 'polite' ? '정중체' : '격식체'}: ${v}`)
-        .join('\n')
-      const label = ver === 'casual' ? '구어체' : ver === 'polite' ? '정중체' : '격식체'
-      const text = main
-        ? `${label} (추천)\n${main}${others ? '\n\n다른 표현:\n' + others : ''}`
-        : '번역 완료'
-
+    case 'DONE':
       return {
         ...state,
         isLoading: false,
         currentStep: -1,
+        pendingCorrection: null,
         messages: [
           ...state.messages.filter((m) => m.id !== LOADING_ID),
-          {
-            id: crypto.randomUUID(),
-            kind: 'bubble',
-            role: 'ai-nichi',
-            text,
-            cardId: action.cardId ?? undefined,
-            card: action.card,
-            isTranslation: true,
-          },
+          { id: crypto.randomUUID(), kind: 'translation-result', data: action.data },
         ],
       }
-    }
 
     case 'ERROR':
       return {
@@ -131,9 +114,10 @@ export default function ChatPage() {
     messages: [GREETING],
     isLoading: false,
     currentStep: -1,
+    pendingCorrection: null,
   })
   const [user, setUser] = useState<User | null>(null)
-  const [detailCard, setDetailCard] = useState<Card | null>(null)
+  const [resultModal, setResultModal] = useState<TranslationResultData | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
@@ -211,32 +195,19 @@ export default function ChatPage() {
           if (json.type === 'start' || json.type === 'complete') dispatch({ type: 'SET_STEP', step: json.step })
           if (json.type === 'result' && json.data) dispatch({ type: 'SET_CORRECTION', data: json.data })
           if (json.type === 'done') {
-            const card: Card | undefined = json.card_id ? {
-              id: json.card_id,
-              user_id: '',
-              card_type: 'sentence',
-              learning_status: 'learning',
-              has_real_use: false,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              content: {
-                korean_input: json.input_kr ?? '',
-                step0_cultural: { needs_correction: false, correction_items: [] },
+            dispatch({
+              type: 'DONE',
+              data: {
+                input_kr: json.input_kr ?? '',
+                step0_cultural: json.step0_cultural ?? { needs_correction: false, correction_items: [] },
                 step1_structure: json.step1_structure ?? [],
                 step2_versions: json.step2_versions ?? { casual: '', polite: '', formal: '' },
                 step3_grammar: json.step3_grammar ?? [],
                 step4_culture: json.step4_culture ?? '',
                 step5_etymology: json.step5_etymology ?? null,
-                recommended_version: (json.recommended_version ?? 'casual') as TranslationVersion,
-                has_mnemonic: !!json.step5_etymology,
-              } as SentencePayload,
-            } : undefined
-            dispatch({
-              type: 'DONE',
-              versions: json.step2_versions ?? {},
-              recommended: json.recommended_version ?? 'casual',
-              cardId: json.card_id,
-              card,
+                recommended_version: json.recommended_version ?? 'casual',
+                card_id: json.card_id ?? null,
+              },
             })
           }
           if (json.type === 'error') dispatch({ type: 'ERROR', message: json.message })
@@ -291,6 +262,54 @@ export default function ChatPage() {
             )
           }
 
+          if (msg.kind === 'translation-result') {
+            const rec = msg.data.step2_versions[msg.data.recommended_version as keyof typeof msg.data.step2_versions] ?? ''
+            const verLabel = msg.data.recommended_version === 'casual' ? '구어체' : msg.data.recommended_version === 'polite' ? '정중체' : '격식체'
+            return (
+              <div key={msg.id} className="flex items-end gap-2">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
+                >
+                  🎎
+                </div>
+                <div
+                  className="flex-1 rounded-2xl rounded-bl-sm overflow-hidden"
+                  style={{ backgroundColor: 'var(--bubble-ai)', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+                >
+                  {/* 스텝 뱃지 */}
+                  <div className="flex items-center gap-1 px-3 pt-3 pb-1 flex-wrap">
+                    {['구조', '번역', '문법', '문화', '어원'].map((label, i) => (
+                      <span
+                        key={i}
+                        className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
+                      >
+                        ✓ {label}
+                      </span>
+                    ))}
+                  </div>
+                  {/* 추천 번역 */}
+                  <div className="px-3 pb-1">
+                    <p className="text-[10px] text-[var(--text-tertiary)]">{verLabel} (추천)</p>
+                    <p className="font-jp text-body-md font-medium text-[var(--text-primary)]">{rec}</p>
+                  </div>
+                  {/* 전체 보기 버튼 */}
+                  <button
+                    onClick={() => setResultModal(msg.data)}
+                    className="w-full py-2 text-center text-caption font-medium active:opacity-60"
+                    style={{
+                      borderTop: '1px solid var(--color-hairline)',
+                      color: 'var(--color-accent)',
+                    }}
+                  >
+                    번역 전체 보기 →
+                  </button>
+                </div>
+              </div>
+            )
+          }
+
           if (msg.kind === 'loading') {
             return (
               <div key={msg.id} className="flex items-end gap-2">
@@ -318,27 +337,6 @@ export default function ChatPage() {
               <ChatBubble role={msg.role}>
                 <span className="whitespace-pre-wrap">{msg.text}</span>
               </ChatBubble>
-              {msg.isTranslation && (
-                <div className="mt-1 ml-11">
-                  {msg.card ? (
-                    <button
-                      onClick={() => setDetailCard(msg.card!)}
-                      className="text-caption flex items-center gap-1 active:opacity-70"
-                      style={{ color: 'var(--color-accent)' }}
-                    >
-                      💾 카드 저장됨 · 상세 보기 →
-                    </button>
-                  ) : !user ? (
-                    <button
-                      onClick={() => router.push('/login')}
-                      className="text-caption"
-                      style={{ color: 'var(--text-tertiary)' }}
-                    >
-                      로그인하면 카드로 저장됩니다
-                    </button>
-                  ) : null}
-                </div>
-              )}
             </div>
           )
         })}
@@ -351,13 +349,9 @@ export default function ChatPage() {
         <InputBar onSubmit={handleSubmit} disabled={state.isLoading} />
       </div>
 
-      {/* 카드 상세 모달 */}
-      {detailCard && (
-        <CardDetail
-          card={detailCard}
-          onClose={() => setDetailCard(null)}
-          onUpdate={(updated) => setDetailCard(updated)}
-        />
+      {/* 번역 결과 풀스크린 */}
+      {resultModal && (
+        <TranslationResult data={resultModal} onClose={() => setResultModal(null)} />
       )}
     </div>
   )

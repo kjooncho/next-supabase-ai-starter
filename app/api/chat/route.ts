@@ -166,14 +166,15 @@ export async function POST(req: Request) {
         send({
           step: -1,
           type: 'done',
-          recommended_version: translationData.recommended_version ?? 'casual',
-          step2_versions: translationData.step2_versions,
-          card_id: savedCardId,
           input_kr,
+          step0_cultural: correctionResult,
           step1_structure: translationData.step1_structure ?? [],
+          step2_versions: translationData.step2_versions,
           step3_grammar: translationData.step3_grammar ?? [],
           step4_culture: translationData.step4_culture ?? '',
           step5_etymology: translationData.step5_etymology ?? null,
+          recommended_version: translationData.recommended_version ?? 'casual',
+          card_id: savedCardId,
           _dbg_uid: user?.id ?? null,
         })
       } catch (err) {

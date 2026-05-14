@@ -6,6 +6,7 @@ import { createBrowserSupabase } from '@/lib/supabase'
 import { Card, getMasteryStage } from '@/types'
 import CardGrid from '@/components/deck/CardGrid'
 import CardDetail from '@/components/deck/CardDetail'
+import FlashcardView from '@/components/deck/FlashcardView'
 
 const STAGE_CONFIG = [
   { key: 'learning',   label: '학습중',   color: 'var(--mastery-learning)' },
@@ -40,6 +41,7 @@ function DeckStats({ cards }: { cards: Card[] }) {
 export default function DeckPage() {
   const [cards, setCards] = useState<Card[]>([])
   const [selected, setSelected] = useState<Card | null>(null)
+  const [flashcardIndex, setFlashcardIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(false)
   const router = useRouter()
@@ -80,6 +82,15 @@ export default function DeckPage() {
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <span className="text-white text-h2 font-bold">내 카드</span>
+        {cards.length > 0 && (
+          <button
+            onClick={() => setFlashcardIndex(0)}
+            className="text-caption px-3 py-1 rounded-full font-medium active:opacity-70"
+            style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff' }}
+          >
+            학습 시작 →
+          </button>
+        )}
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -109,6 +120,15 @@ export default function DeckPage() {
         <CardDetail
           card={selected}
           onClose={() => setSelected(null)}
+          onUpdate={handleUpdate}
+        />
+      )}
+
+      {flashcardIndex !== null && (
+        <FlashcardView
+          cards={cards}
+          initialIndex={flashcardIndex}
+          onClose={() => setFlashcardIndex(null)}
           onUpdate={handleUpdate}
         />
       )}

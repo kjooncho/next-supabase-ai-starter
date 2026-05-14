@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Button from '@/components/ui/Button'
 import MasteryBadge from '@/components/ui/MasteryBadge'
 import TeacherModal from '@/components/deck/TeacherModal'
+import RealUseForm from '@/components/deck/RealUseForm'
 import { Card, SentencePayload, getMasteryStage } from '@/types'
 import { createBrowserSupabase } from '@/lib/supabase'
 
@@ -26,21 +27,12 @@ export default function CardDetail({ card, onClose, onUpdate }: CardDetailProps)
   const payload = card.payload as SentencePayload
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
   const [showTeacher, setShowTeacher] = useState(false)
+  const [showRealUse, setShowRealUse] = useState(false)
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
   }, [])
-
-  const handleRealUse = async () => {
-    const supabase = createBrowserSupabase()
-    const newRealUse = !card.has_real_use
-    await supabase
-      .from('cards')
-      .update({ has_real_use: newRealUse })
-      .eq('id', card.id)
-    onUpdate({ ...card, has_real_use: newRealUse })
-  }
 
   const handleMastered = async () => {
     const supabase = createBrowserSupabase()
@@ -229,7 +221,7 @@ export default function CardDetail({ card, onClose, onUpdate }: CardDetailProps)
             <Button
               variant="realUse"
               fullWidth
-              onClick={handleRealUse}
+              onClick={() => setShowRealUse(true)}
             >
               {card.has_real_use ? '✓ 써봤어요' : '써봤어요'}
             </Button>
@@ -239,6 +231,13 @@ export default function CardDetail({ card, onClose, onUpdate }: CardDetailProps)
 
       {showTeacher && (
         <TeacherModal card={card} onClose={() => setShowTeacher(false)} />
+      )}
+      {showRealUse && (
+        <RealUseForm
+          card={card}
+          onClose={() => setShowRealUse(false)}
+          onSave={(updated) => { onUpdate(updated); setShowRealUse(false) }}
+        />
       )}
     </div>
   )

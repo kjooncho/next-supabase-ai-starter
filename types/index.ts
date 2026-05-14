@@ -33,8 +33,16 @@ export interface CorrectionItem {
   severity: 'high' | 'medium' | 'low'
 }
 
+export interface RealUseRecord {
+  date: string
+  context: '직장' | '육아' | '일상' | '소설' | '관광'
+  memo: string
+  notes?: string
+}
+
 export interface SentencePayload {
   korean_input: string
+  real_use_records?: RealUseRecord[]
   step0_cultural: {
     needs_correction: boolean
     correction_items: CorrectionItem[]

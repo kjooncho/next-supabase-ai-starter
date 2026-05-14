@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Send, ChevronLeft } from 'lucide-react'
 import { TEACHER_QUESTIONS, TeacherQuestion } from '@/lib/teacherQuestions'
 import { createBrowserSupabase } from '@/lib/supabase'
 import { Card, SentencePayload } from '@/types'
@@ -219,9 +220,7 @@ function QuestionSession({ q, qIndex, total, masteryProgress, onUnderstood, onNe
               className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 active:opacity-70 disabled:opacity-40"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Send size={18} color="#fff" />
             </button>
           </div>
         )}
@@ -346,9 +345,7 @@ export default function TeacherPage() {
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] z-10" style={{ backgroundColor: 'var(--color-primary)' }}>
         <div className="flex items-center px-4 h-[56px] gap-3">
           <button onClick={() => router.back()} className="text-white active:opacity-60">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18l-6-6 6-6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ChevronLeft size={24} color="#fff" />
           </button>
           <div className="flex-1 flex items-center justify-between">
             <div className="flex items-center gap-1.5">

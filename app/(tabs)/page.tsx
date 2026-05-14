@@ -2,6 +2,7 @@
 
 import { useReducer, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Trash2 } from 'lucide-react'
 import ChatBubble from '@/components/chat/ChatBubble'
 import InputBar from '@/components/chat/InputBar'
 import StepIndicator from '@/components/chat/StepIndicator'
@@ -325,9 +326,7 @@ export default function ChatPage() {
               className="text-white/50 active:opacity-50 p-1"
               title="채팅 초기화"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Trash2 size={16} />
             </button>
           )}
           {user ? (

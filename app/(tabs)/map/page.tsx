@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Volume2, Volume1, ChevronRight } from 'lucide-react'
 import { MAP_LOCATIONS, MONTHLY_VISITS, MapLocation } from '@/lib/mapLocations'
 import JpReading from '@/components/ui/JpReading'
 
@@ -26,10 +27,7 @@ function SpeakButton({ text, color }: { text: string; color: string }) {
       className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60"
       style={{ backgroundColor: color + '22' }}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M11 5L6 9H2v6h4l5 4V5z" fill={color} />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" stroke={color} strokeWidth="2" strokeLinecap="round" />
-      </svg>
+      <Volume2 size={14} color={color} />
     </button>
   )
 }
@@ -243,10 +241,7 @@ function ExpressionsSheet({ loc, onClose, isCompleted, onToggleComplete }: {
                   className="flex items-center gap-1 py-1 px-2.5 rounded-full active:opacity-60"
                   style={{ backgroundColor: loc.color + '22' }}
                 >
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                    <path d="M11 5L6 9H2v6h4l5 4V5z" fill={loc.color} />
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke={loc.color} strokeWidth="2" strokeLinecap="round" />
-                  </svg>
+                  <Volume1 size={11} color={loc.color} />
                   <span className="text-[10px] font-medium" style={{ color: loc.color }}>듣기</span>
                 </button>
               </div>
@@ -443,9 +438,7 @@ export default function MapPage() {
                       )}
                     </div>
                   </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                    <path d="M9 18l6-6-6-6" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
+                  <ChevronRight size={14} color="var(--text-tertiary)" className="flex-shrink-0" />
                 </button>
               )
             })}

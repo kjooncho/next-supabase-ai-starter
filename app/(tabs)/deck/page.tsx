@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Volume1, Search } from 'lucide-react'
 import { createBrowserSupabase } from '@/lib/supabase'
 import { Card, SentencePayload, getMasteryStage } from '@/types'
 import CardGrid from '@/components/deck/CardGrid'
@@ -57,10 +58,7 @@ function TodayCard({ cards, onOpen, onStudy }: { cards: Card[]; onOpen: (c: Card
           className="w-7 h-7 rounded-full flex items-center justify-center active:opacity-60"
           style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-            <path d="M11 5L6 9H2v6h4l5 4V5z" fill="#fff" />
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+          <Volume1 size={13} color="#fff" />
         </button>
       </div>
 
@@ -233,10 +231,7 @@ export default function DeckPage() {
             <TodayCard cards={cards} onOpen={setSelected} onStudy={setFlashcardIndex} />
             {/* 검색창 */}
             <div className="relative mb-4">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <circle cx="11" cy="11" r="8" stroke="var(--text-tertiary)" strokeWidth="2"/>
-                <path d="M21 21l-4.35-4.35" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={14} color="var(--text-tertiary)" />
               <input
                 type="text"
                 value={searchQuery}

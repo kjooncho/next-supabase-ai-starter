@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ChevronRight } from 'lucide-react'
 import { SERIES_LIST, getEpisodesBySeriesId } from '@/lib/episodes'
 
 export default function LifePage() {
@@ -105,9 +106,7 @@ export default function LifePage() {
                         <p className="text-caption font-medium text-[var(--text-primary)] truncate">{ep.scene_kr}</p>
                         <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5">#{ep.tag} · 표현 {ep.expressions.length}개</p>
                       </div>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                        <path d="M9 18l6-6-6-6" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
+                      <ChevronRight size={16} color="var(--text-tertiary)" className="flex-shrink-0" />
                     </button>
                     )
                   })}

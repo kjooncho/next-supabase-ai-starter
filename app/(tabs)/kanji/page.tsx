@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { Volume2, Volume1 } from 'lucide-react'
 import { KANJI_LIST, KANJI_CATEGORIES, CATEGORY_COLORS, KanjiEntry, KanjiCategory } from '@/lib/kanji'
 
 const STORAGE_KEY = 'learned_kanji'
@@ -70,10 +71,7 @@ function TodayKanjiCard({
           className="w-7 h-7 rounded-full flex items-center justify-center active:opacity-60"
           style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-            <path d="M11 5L6 9H2v6h4l5 4V5z" fill="#fff" />
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+          <Volume1 size={13} color="#fff" />
         </button>
       </div>
 
@@ -245,10 +243,7 @@ function KanjiDetailSheet({
               className="w-9 h-9 rounded-full flex items-center justify-center active:opacity-60"
               style={{ backgroundColor: `${color}18` }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M11 5L6 9H2v6h4l5 4V5z" fill={color} />
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" stroke={color} strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <Volume2 size={16} color={color} />
             </button>
           </div>
 
@@ -290,10 +285,7 @@ function KanjiDetailSheet({
                     className="w-8 h-8 rounded-full flex items-center justify-center active:opacity-60 ml-2 flex-shrink-0"
                     style={{ backgroundColor: 'var(--color-tag-bg)' }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M11 5L6 9H2v6h4l5 4V5z" fill="var(--text-secondary)" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
+                    <Volume2 size={14} color="var(--text-secondary)" />
                   </button>
                 </div>
               ))}
@@ -381,9 +373,7 @@ function KanjiPracticeView({
           className="w-8 h-8 rounded-full flex items-center justify-center active:opacity-60"
           style={{ backgroundColor: 'var(--color-tag-bg)' }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M11 5L6 9H2v6h4l5 4V5z" fill="var(--text-secondary)" />
-          </svg>
+          <Volume1 size={14} color="var(--text-secondary)" />
         </button>
       </div>
 

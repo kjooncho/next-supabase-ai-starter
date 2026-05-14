@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Volume2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import MasteryBadge from '@/components/ui/MasteryBadge'
 import TeacherModal from '@/components/deck/TeacherModal'
@@ -97,10 +98,7 @@ function EpisodeCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailProp
                     className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60 mt-0.5"
                     style={{ backgroundColor: 'var(--color-tag-bg)' }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M11 5L6 9H2v6h4l5 4V5z" fill="var(--text-secondary)" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
+                    <Volume2 size={14} color="var(--text-secondary)" />
                   </button>
                 </div>
                 <p className="text-body font-medium mt-2" style={{ color: 'var(--text-primary)' }}>{d.korean}</p>
@@ -246,10 +244,7 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
                           className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center active:opacity-60"
                           style={{ backgroundColor: isRec ? 'rgba(255,255,255,0.15)' : 'var(--color-tag-bg)' }}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                            <path d="M11 5L6 9H2v6h4l5 4V5z" fill={isRec ? '#fff' : 'var(--text-secondary)'} />
-                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" stroke={isRec ? '#fff' : 'var(--text-secondary)'} strokeWidth="2" strokeLinecap="round" />
-                          </svg>
+                          <Volume2 size={14} color={isRec ? '#fff' : 'var(--text-secondary)'} />
                         </button>
                       </div>
                     </div>

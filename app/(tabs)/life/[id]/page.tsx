@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { Volume1, ChevronLeft } from 'lucide-react'
 import { getEpisodeById, getEpisodesBySeriesId, SERIES_LIST } from '@/lib/episodes'
 import { createBrowserSupabase } from '@/lib/supabase'
 import JpReading from '@/components/ui/JpReading'
@@ -22,10 +23,7 @@ function SpeakBtn({ text }: { text: string }) {
       className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60"
       style={{ backgroundColor: 'var(--color-tag-bg)' }}
     >
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-        <path d="M11 5L6 9H2v6h4l5 4V5z" fill="var(--text-secondary)" />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" />
-      </svg>
+      <Volume1 size={12} color="var(--text-secondary)" />
     </button>
   )
 }
@@ -114,9 +112,7 @@ export default function EpisodePage() {
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <button onClick={() => router.back()} className="text-white mr-3 active:opacity-60">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <ChevronLeft size={24} color="#fff" />
         </button>
         <div className="flex-1">
           <p className="text-white text-body font-medium leading-none">{episode.series_name_jp}</p>

@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useRef, useState } from 'react'
+import { ImageIcon, ArrowUp } from 'lucide-react'
 
 interface InputBarProps {
   onSubmit: (text: string) => void
@@ -84,11 +85,7 @@ export default function InputBar({
             style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
             aria-label="이미지 번역"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="18" height="18" rx="3" stroke="var(--text-tertiary)" strokeWidth="1.8"/>
-              <circle cx="8.5" cy="8.5" r="1.5" fill="var(--text-tertiary)"/>
-              <path d="M3 15l5-5 4 4 3-3 6 6" stroke="var(--text-tertiary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ImageIcon size={18} color="var(--text-tertiary)" />
           </button>
         </>
       )}
@@ -121,9 +118,7 @@ export default function InputBar({
         style={{ backgroundColor: 'var(--color-accent)' }}
         aria-label="전송"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M12 19V5M5 12l7-7 7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <ArrowUp size={18} color="white" strokeWidth={2.5} />
       </button>
     </form>
   )

@@ -21,7 +21,7 @@ export interface Card {
   card_type: CardType
   learning_status: LearningStatus
   has_real_use: boolean
-  content: SentencePayload | CalendarPayload | EpisodePayload
+  payload: SentencePayload | CalendarPayload | EpisodePayload
   created_at: string
   updated_at: string
 }

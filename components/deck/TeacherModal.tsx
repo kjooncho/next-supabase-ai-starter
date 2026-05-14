@@ -11,7 +11,7 @@ interface TeacherModalProps {
 export default function TeacherModal({ card, onClose }: TeacherModalProps) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
-  const payload = card.content as SentencePayload
+  const payload = card.payload as SentencePayload
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'

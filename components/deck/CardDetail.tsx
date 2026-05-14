@@ -23,7 +23,7 @@ function speak(text: string) {
 }
 
 export default function CardDetail({ card, onClose, onUpdate }: CardDetailProps) {
-  const payload = card.content as SentencePayload
+  const payload = card.payload as SentencePayload
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
   const [showTeacher, setShowTeacher] = useState(false)
 

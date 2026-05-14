@@ -26,7 +26,7 @@ export async function GET() {
         card_type: 'sentence',
         learning_status: 'learning',
         has_real_use: false,
-        content: { korean_input: '__debug_test__' },
+        payload: { korean_input: '__debug_test__' },
       })
       .select('id')
       .single()

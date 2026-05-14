@@ -136,7 +136,7 @@ export async function POST(req: Request) {
               card_type: 'sentence',
               learning_status: 'learning',
               has_real_use: false,
-              content: {
+              payload: {
                 korean_input: input_kr,
                 step0_cultural: correctionResult,
                 step1_structure: translationData.step1_structure ?? [],

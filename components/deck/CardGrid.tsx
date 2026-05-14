@@ -66,7 +66,7 @@ export default function CardGrid({ cards, onCardClick }: CardGridProps) {
 }
 
 function CardItem({ card, onClick }: { card: Card; onClick: () => void }) {
-  const payload = card.content as SentencePayload
+  const payload = card.payload as SentencePayload
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
 
   const mainJp =

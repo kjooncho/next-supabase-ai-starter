@@ -58,7 +58,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
     has_real_use: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    content: {
+    payload: {
       korean_input: data.input_kr,
       step0_cultural: data.step0_cultural,
       step1_structure: data.step1_structure,

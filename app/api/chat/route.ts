@@ -126,7 +126,6 @@ export async function POST(req: Request) {
 
         // ── 카드 저장 (로그인 시) ─────────────────────────────
         let savedCardId: string | null = null
-        console.log('[card-save] user:', user?.id ?? 'null')
         if (user) {
           const admin = createAdminClient()
           const { data: card, error: cardError } = await admin
@@ -153,7 +152,6 @@ export async function POST(req: Request) {
 
           if (cardError) {
             console.error('[card-save] error:', cardError.code, cardError.message)
-            send({ type: 'card_error', code: cardError.code, message: cardError.message })
           } else {
             savedCardId = card?.id ?? null
             await admin.rpc('increment_api_usage', {
@@ -175,7 +173,6 @@ export async function POST(req: Request) {
           step5_etymology: translationData.step5_etymology ?? null,
           recommended_version: translationData.recommended_version ?? 'casual',
           card_id: savedCardId,
-          _dbg_uid: user?.id ?? null,
         })
       } catch (err) {
         const message = err instanceof Error ? err.message : '알 수 없는 오류'

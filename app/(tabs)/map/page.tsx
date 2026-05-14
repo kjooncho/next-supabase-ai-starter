@@ -4,10 +4,80 @@ import { useState, useEffect } from 'react'
 import { MAP_LOCATIONS, MONTHLY_VISITS, MapLocation } from '@/lib/mapLocations'
 import JpReading from '@/components/ui/JpReading'
 
+function speak(text: string) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+  window.speechSynthesis.cancel()
+  const u = new SpeechSynthesisUtterance(text)
+  u.lang = 'ja-JP'
+  u.rate = 0.85
+  window.speechSynthesis.speak(u)
+}
+
 function StatusBadge({ status }: { status: 'done' | 'in-progress' | 'not-started' }) {
   if (status === 'done') return <span className="text-[11px] font-medium" style={{ color: 'var(--color-accent)' }}>완료</span>
   if (status === 'in-progress') return <span className="text-[11px] font-medium" style={{ color: '#27ae60' }}>진행중</span>
   return <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>미시작</span>
+}
+
+function SpeakButton({ text, color }: { text: string; color: string }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); speak(text) }}
+      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60"
+      style={{ backgroundColor: color + '22' }}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M11 5L6 9H2v6h4l5 4V5z" fill={color} />
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    </button>
+  )
+}
+
+function DailyCard({ loc, onOpen }: { loc: MapLocation; onOpen: () => void }) {
+  const expr = loc.expressions[0]
+  const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+  return (
+    <div
+      className="mx-4 rounded-2xl overflow-hidden"
+      style={{ backgroundColor: loc.color + '14', border: `1.5px solid ${loc.color}40` }}
+    >
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: loc.color }}>
+          오늘의 장소
+        </span>
+        <span className="text-[10px] text-[var(--text-tertiary)]">{dateStr}</span>
+      </div>
+      <div className="px-4 pb-2 flex items-center gap-2">
+        <span className="text-2xl">{loc.emoji}</span>
+        <div>
+          <p className="font-jp text-body font-bold leading-none">{loc.name_jp}</p>
+          <p className="text-[11px] text-[var(--text-tertiary)]">{loc.name_kr}</p>
+        </div>
+      </div>
+      <div className="px-4 pb-3">
+        <div
+          className="rounded-xl px-3 py-2.5 flex items-start gap-2"
+          style={{ backgroundColor: 'var(--color-bg)' }}
+        >
+          <div className="flex-1">
+            <p className="font-jp text-body font-medium">{expr.japanese}</p>
+            <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5 leading-relaxed">{expr.reading}</p>
+            <p className="text-[10px] font-medium mt-0.5 leading-relaxed" style={{ color: loc.color }}>{expr.pronunciation}</p>
+            <p className="text-caption text-[var(--text-secondary)] mt-1">{expr.korean}</p>
+          </div>
+          <SpeakButton text={expr.japanese} color={loc.color} />
+        </div>
+        <button
+          onClick={onOpen}
+          className="w-full mt-2 py-2 rounded-xl text-[12px] font-medium text-white active:opacity-70"
+          style={{ backgroundColor: loc.color }}
+        >
+          전체 표현 보기 ({loc.expressions.length}개) →
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function LocationPopup({ loc, onLearn, onClose }: {
@@ -15,9 +85,7 @@ function LocationPopup({ loc, onLearn, onClose }: {
   onLearn: () => void
   onClose: () => void
 }) {
-  // 팝업이 화면 오른쪽에 가까우면 왼쪽으로 열기
   const rightAligned = loc.left > 60
-
   return (
     <div
       className="absolute z-20 rounded-2xl shadow-xl w-[210px]"
@@ -67,11 +135,24 @@ function LocationPopup({ loc, onLearn, onClose }: {
   )
 }
 
-function ExpressionsSheet({ loc, onClose }: { loc: MapLocation; onClose: () => void }) {
+function ExpressionsSheet({ loc, onClose, isCompleted, onToggleComplete }: {
+  loc: MapLocation
+  onClose: () => void
+  isCompleted: boolean
+  onToggleComplete: () => void
+}) {
+  const [revealed, setRevealed] = useState<Set<number>>(new Set())
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
   }, [])
+
+  const toggle = (i: number) => setRevealed(prev => {
+    const next = new Set(prev)
+    next.has(i) ? next.delete(i) : next.add(i)
+    return next
+  })
 
   return (
     <div
@@ -80,52 +161,95 @@ function ExpressionsSheet({ loc, onClose }: { loc: MapLocation; onClose: () => v
       onClick={onClose}
     >
       <div
-        className="rounded-t-3xl max-h-[75vh] overflow-y-auto pb-[34px]"
+        className="rounded-t-3xl max-h-[82vh] overflow-y-auto pb-[34px]"
         style={{ backgroundColor: 'var(--color-bg)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 핸들 */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--color-hairline)' }} />
         </div>
 
-        {/* 헤더 */}
         <div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--color-hairline)' }}>
           <div className="flex items-center gap-2">
             <span className="text-2xl">{loc.emoji}</span>
-            <div>
+            <div className="flex-1">
               <p className="font-jp text-body-md font-bold">{loc.name_jp}</p>
               <p className="text-caption text-[var(--text-tertiary)]">{loc.description_kr}</p>
             </div>
+            <SpeakButton text={loc.name_jp} color={loc.color} />
           </div>
         </div>
 
-        {/* 표현 목록 */}
-        <div className="px-5 pt-4 flex flex-col gap-3">
-          <p className="text-caption font-medium" style={{ color: 'var(--color-accent)' }}>
-            핵심 표현 {loc.expressions.length}개
+        <div className="px-5 pt-3 pb-1">
+          <p className="text-[11px] text-[var(--text-tertiary)]">
+            💡 한국어를 보고 일본어를 떠올린 뒤 탭해서 확인하세요
           </p>
+        </div>
+
+        <div className="px-5 pt-2 flex flex-col gap-3 pb-2">
+          <div className="flex items-center justify-between">
+            <p className="text-caption font-medium" style={{ color: loc.color }}>
+              핵심 표현 {loc.expressions.length}개
+            </p>
+            <button
+              onClick={onToggleComplete}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium active:opacity-70"
+              style={{
+                backgroundColor: isCompleted ? '#e8f5e9' : 'var(--color-surface)',
+                border: `1px solid ${isCompleted ? '#c8e6c9' : 'var(--color-hairline)'}`,
+                color: isCompleted ? '#2e7d32' : 'var(--text-secondary)',
+              }}
+            >
+              {isCompleted ? '✓ 학습완료' : '학습 완료 표시'}
+            </button>
+          </div>
           {loc.expressions.map((expr, i) => (
             <div
               key={i}
-              className="rounded-xl px-4 py-3"
-              style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
+              className="rounded-xl overflow-hidden"
+              style={{ border: '1px solid var(--color-hairline)' }}
             >
-              <div className="flex items-start justify-between gap-2">
-                <JpReading
-                  japanese={expr.japanese}
-                  reading={expr.reading}
-                  pronunciation={expr.pronunciation}
-                  size="base"
-                />
+              <button
+                className="w-full px-4 py-3 text-left active:opacity-80"
+                style={{ backgroundColor: 'var(--color-surface)' }}
+                onClick={() => toggle(i)}
+              >
+                <p className="text-caption font-medium text-[var(--text-primary)]">{expr.korean}</p>
+                {revealed.has(i) ? (
+                  <div className="mt-2">
+                    <JpReading
+                      japanese={expr.japanese}
+                      reading={expr.reading}
+                      pronunciation={expr.pronunciation}
+                      size="base"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-[var(--text-tertiary)] mt-1">탭해서 일본어 확인 →</p>
+                )}
+              </button>
+              <div
+                className="px-3 py-1.5 flex items-center justify-between"
+                style={{ backgroundColor: loc.color + '0e', borderTop: `1px solid ${loc.color}28` }}
+              >
                 <span
-                  className="text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-bold flex-shrink-0 mt-0.5"
-                  style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
+                  className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold flex-shrink-0"
+                  style={{ backgroundColor: loc.color, color: '#fff' }}
                 >
                   {i + 1}
                 </span>
+                <button
+                  onClick={() => speak(expr.japanese)}
+                  className="flex items-center gap-1 py-1 px-2.5 rounded-full active:opacity-60"
+                  style={{ backgroundColor: loc.color + '22' }}
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z" fill={loc.color} />
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke={loc.color} strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  <span className="text-[10px] font-medium" style={{ color: loc.color }}>듣기</span>
+                </button>
               </div>
-              <p className="text-caption font-medium text-[var(--text-secondary)] mt-2">{expr.korean}</p>
             </div>
           ))}
         </div>
@@ -137,12 +261,34 @@ function ExpressionsSheet({ loc, onClose }: { loc: MapLocation; onClose: () => v
 export default function MapPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [sheet, setSheet] = useState<MapLocation | null>(null)
+  const [activeTag, setActiveTag] = useState('전체')
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('completed_locations')
+      if (raw) setCompletedIds(new Set(JSON.parse(raw)))
+    } catch {}
+  }, [])
+
+  const markComplete = (id: string) => {
+    setCompletedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
+      try { localStorage.setItem('completed_locations', JSON.stringify([...next])) } catch {}
+      return next
+    })
+  }
 
   const selectedLoc = MAP_LOCATIONS.find((l) => l.id === selected)
+  const dailyLoc = MAP_LOCATIONS[new Date().getDate() % MAP_LOCATIONS.length]
+  const allTags = ['전체', ...Array.from(new Set(MAP_LOCATIONS.map((l) => l.tag)))]
+  const filteredLocations = activeTag === '전체'
+    ? MAP_LOCATIONS
+    : MAP_LOCATIONS.filter((l) => l.tag === activeTag)
 
   return (
     <div className="flex flex-col h-full">
-      {/* 헤더 */}
       <header
         className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center justify-between px-4 z-10"
         style={{ backgroundColor: 'var(--color-primary)' }}
@@ -154,60 +300,113 @@ export default function MapPage() {
             <p className="text-white/60 text-[11px] mt-0.5">탭하면 표현이 나와요</p>
           </div>
         </div>
+        <span
+          className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+          style={{
+            backgroundColor: completedIds.size === MAP_LOCATIONS.length ? '#f39c12' : 'rgba(255,255,255,0.15)',
+            color: '#fff',
+          }}
+        >
+          {completedIds.size === MAP_LOCATIONS.length ? '🏆 전체 완료!' : `${completedIds.size}/${MAP_LOCATIONS.length} 완료`}
+        </span>
       </header>
 
-      {/* 스크롤 본문 */}
       <div className="flex-1 overflow-y-auto pb-[80px]" style={{ paddingTop: '56px' }}>
+        {/* 진행률 바 */}
+        <div className="h-1 w-full" style={{ backgroundColor: 'var(--color-hairline)' }}>
+          <div
+            className="h-full transition-all duration-500"
+            style={{
+              width: `${(completedIds.size / MAP_LOCATIONS.length) * 100}%`,
+              backgroundColor: completedIds.size === MAP_LOCATIONS.length ? '#f39c12' : 'var(--color-accent)',
+            }}
+          />
+        </div>
+        {/* 오늘의 장소 */}
+        <div className="pt-4 pb-3">
+          <DailyCard loc={dailyLoc} onOpen={() => setSheet(dailyLoc)} />
+        </div>
+
         {/* 지도 영역 */}
         <div
           className="relative w-full"
-          style={{ height: '320px' }}
+          style={{ height: '340px' }}
           onClick={() => setSelected(null)}
         >
-          {/* 지도 배경 */}
           <div
             className="absolute inset-0"
             style={{
               background: 'linear-gradient(135deg, #d4e8c2 0%, #c8ddb4 30%, #e8d5b0 60%, #d4c8a8 100%)',
             }}
           >
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 390 320" preserveAspectRatio="none">
-              <path d="M0 160 Q100 150 195 160 Q290 170 390 160" stroke="#b8a882" strokeWidth="14" fill="none" opacity="0.6"/>
-              <path d="M195 0 Q185 80 195 160 Q205 240 195 320" stroke="#b8a882" strokeWidth="10" fill="none" opacity="0.5"/>
-              <path d="M0 80 Q80 75 140 90" stroke="#b8a882" strokeWidth="7" fill="none" opacity="0.4"/>
-              <path d="M250 230 Q320 220 390 230" stroke="#b8a882" strokeWidth="7" fill="none" opacity="0.4"/>
-              <path d="M60 320 Q130 280 180 260 Q230 240 280 250 Q330 260 390 240" stroke="#a8c8e8" strokeWidth="18" fill="none" opacity="0.5"/>
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 390 340" preserveAspectRatio="none">
+              {/* 주요 도로 */}
+              <path d="M0 170 Q100 160 195 170 Q290 180 390 170" stroke="#c8b882" strokeWidth="16" fill="none" opacity="0.7"/>
+              <path d="M195 0 Q185 85 195 170 Q205 255 195 340" stroke="#c8b882" strokeWidth="12" fill="none" opacity="0.6"/>
+              {/* 보조 도로 */}
+              <path d="M0 80 Q90 75 155 90" stroke="#c8b882" strokeWidth="8" fill="none" opacity="0.5"/>
+              <path d="M240 80 Q300 72 390 78" stroke="#c8b882" strokeWidth="8" fill="none" opacity="0.5"/>
+              <path d="M0 250 Q70 240 140 255 Q200 265 260 250" stroke="#c8b882" strokeWidth="8" fill="none" opacity="0.5"/>
+              <path d="M260 250 Q320 240 390 248" stroke="#c8b882" strokeWidth="8" fill="none" opacity="0.5"/>
+              {/* 중앙선 */}
+              <path d="M0 170 Q100 160 195 170 Q290 180 390 170" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.5" strokeDasharray="18 12"/>
+              <path d="M195 0 Q185 85 195 170 Q205 255 195 340" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.5" strokeDasharray="18 12"/>
+              {/* 철도 */}
+              <path d="M60 170 Q130 165 195 170 Q260 175 340 165" stroke="#1565c0" strokeWidth="4" fill="none" opacity="0.3" strokeDasharray="10 4"/>
+              {/* 강 */}
+              <path d="M30 310 Q120 290 180 275 Q240 260 310 270 Q360 278 390 265" stroke="#a8c8e8" strokeWidth="22" fill="none" opacity="0.5"/>
+              {/* 공항 활주로 표시 */}
+              <rect x="70" y="292" width="60" height="16" rx="3" fill="#b0b8c8" opacity="0.4"/>
+              <line x1="100" y1="292" x2="100" y2="308" stroke="#fff" strokeWidth="1.5" opacity="0.7" strokeDasharray="4 4"/>
+              {/* 블록들 */}
+              <rect x="30" y="28" width="55" height="38" rx="5" fill="#c8d8b0" opacity="0.45"/>
+              <rect x="245" y="24" width="65" height="42" rx="5" fill="#c8d8b0" opacity="0.45"/>
+              <rect x="95" y="188" width="50" height="36" rx="5" fill="#d8c8a8" opacity="0.45"/>
+              <rect x="275" y="185" width="55" height="36" rx="5" fill="#d8c8a8" opacity="0.45"/>
+              <rect x="30" y="210" width="45" height="34" rx="5" fill="#d8ccc0" opacity="0.4"/>
+              <rect x="310" y="75" width="55" height="32" rx="5" fill="#c8d8b0" opacity="0.4"/>
             </svg>
-            <div className="absolute rounded-full opacity-40" style={{ width: 80, height: 60, top: '38%', left: '28%', backgroundColor: '#88c060' }} />
           </div>
 
-          {/* 위치 마커들 */}
-          {MAP_LOCATIONS.map((loc) => (
-            <button
-              key={loc.id}
-              className="absolute flex flex-col items-center gap-0.5 transition-transform active:scale-110"
-              style={{ top: `${loc.top}%`, left: `${loc.left}%`, transform: 'translate(-50%, -50%)', zIndex: selected === loc.id ? 30 : 10 }}
-              onClick={(e) => { e.stopPropagation(); setSelected(selected === loc.id ? null : loc.id) }}
-            >
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 border-white"
+          {MAP_LOCATIONS.map((loc) => {
+            const isActive = selected === loc.id
+            const isDone = completedIds.has(loc.id)
+            return (
+              <button
+                key={loc.id}
+                className="absolute flex flex-col items-center gap-0.5 transition-transform active:scale-110"
                 style={{
-                  backgroundColor: loc.color,
-                  boxShadow: selected === loc.id ? `0 0 0 3px ${loc.color}44, 0 4px 12px rgba(0,0,0,0.2)` : '0 2px 8px rgba(0,0,0,0.2)',
+                  top: `${loc.top}%`,
+                  left: `${loc.left}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: isActive ? 30 : 10,
                 }}
+                onClick={(e) => { e.stopPropagation(); setSelected(isActive ? null : loc.id) }}
               >
-                {loc.emoji}
-              </div>
-              <span
-                className="text-[9px] font-medium px-1.5 py-0.5 rounded-full whitespace-nowrap shadow-sm font-jp"
-                style={{ backgroundColor: loc.color, color: '#fff' }}
-              >
-                {loc.name_jp}
-              </span>
-            </button>
-          ))}
+                <div className="relative">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 border-white"
+                    style={{
+                      backgroundColor: isDone ? '#2e7d32' : loc.color,
+                      boxShadow: isActive
+                        ? `0 0 0 4px ${loc.color}55, 0 4px 14px rgba(0,0,0,0.25)`
+                        : '0 2px 8px rgba(0,0,0,0.18)',
+                      opacity: isDone ? 0.85 : 1,
+                    }}
+                  >
+                    {isDone ? '✓' : loc.emoji}
+                  </div>
+                </div>
+                <span
+                  className="text-[9px] font-medium px-1.5 py-0.5 rounded-full whitespace-nowrap shadow-sm font-jp"
+                  style={{ backgroundColor: isDone ? '#2e7d32' : loc.color, color: '#fff' }}
+                >
+                  {loc.name_jp}
+                </span>
+              </button>
+            )
+          })}
 
-          {/* 선택된 팝업 */}
           {selectedLoc && (
             <LocationPopup
               loc={selectedLoc}
@@ -253,16 +452,34 @@ export default function MapPage() {
           </div>
         </div>
 
-        {/* 전체 장소 목록 */}
-        <div className="px-4 pt-2">
-          <p className="text-body font-bold text-[var(--text-primary)] mb-3">전체 장소</p>
-          <div className="grid grid-cols-2 gap-2">
-            {MAP_LOCATIONS.map((loc) => (
+        {/* 태그 필터 + 전체 장소 */}
+        <div className="pt-3">
+          <div className="px-4 mb-2">
+            <p className="text-body font-bold text-[var(--text-primary)]">전체 장소</p>
+          </div>
+          <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(tag)}
+                className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium active:opacity-70"
+                style={{
+                  backgroundColor: activeTag === tag ? 'var(--color-primary)' : 'var(--color-surface)',
+                  color: activeTag === tag ? '#fff' : 'var(--text-secondary)',
+                  border: `1px solid ${activeTag === tag ? 'var(--color-primary)' : 'var(--color-hairline)'}`,
+                }}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+          <div className="px-4 grid grid-cols-2 gap-2">
+            {filteredLocations.map((loc) => (
               <button
                 key={loc.id}
                 onClick={() => setSheet(loc)}
                 className="rounded-xl px-3 py-3 text-left active:opacity-70"
-                style={{ backgroundColor: 'var(--color-surface)', border: `1px solid var(--color-hairline)` }}
+                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{loc.emoji}</span>
@@ -276,8 +493,14 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* 표현 배우기 바텀시트 */}
-      {sheet && <ExpressionsSheet loc={sheet} onClose={() => setSheet(null)} />}
+      {sheet && (
+        <ExpressionsSheet
+          loc={sheet}
+          onClose={() => setSheet(null)}
+          isCompleted={completedIds.has(sheet.id)}
+          onToggleComplete={() => markComplete(sheet.id)}
+        />
+      )}
     </div>
   )
 }

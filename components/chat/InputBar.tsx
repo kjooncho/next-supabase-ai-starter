@@ -4,6 +4,7 @@ import { FormEvent, useRef, useState } from 'react'
 
 interface InputBarProps {
   onSubmit: (text: string) => void
+  onImageSelect?: (file: File) => void
   disabled?: boolean
   placeholder?: string
   maxLength?: number
@@ -11,12 +12,25 @@ interface InputBarProps {
 
 export default function InputBar({
   onSubmit,
+  onImageSelect,
   disabled = false,
   placeholder = '일본어로 하고 싶은 말을 한국어로 적어보세요',
   maxLength = 500,
 }: InputBarProps) {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !onImageSelect) return
+    if (file.size > 4 * 1024 * 1024) {
+      alert('이미지 크기는 4MB 이하만 지원합니다')
+      return
+    }
+    onImageSelect(file)
+    e.target.value = ''
+  }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -52,6 +66,32 @@ export default function InputBar({
       onSubmit={handleSubmit}
       className="flex items-end gap-2 px-4 py-3 border-t border-[var(--color-hairline)] bg-[var(--color-surface)]"
     >
+      {onImageSelect && (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={disabled}
+          />
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => fileInputRef.current?.click()}
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-30 active:opacity-60"
+            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
+            aria-label="이미지 번역"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="18" height="18" rx="3" stroke="var(--text-tertiary)" strokeWidth="1.8"/>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="var(--text-tertiary)"/>
+              <path d="M3 15l5-5 4 4 3-3 6 6" stroke="var(--text-tertiary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </>
+      )}
       <div className="flex-1 relative">
         <textarea
           ref={textareaRef}

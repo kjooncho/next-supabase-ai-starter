@@ -46,12 +46,14 @@ export interface SentencePayload {
     needs_correction: boolean
     correction_items: CorrectionItem[]
   }
-  step1_structure: Array<{ korean: string; japanese: string }>
+  step1_structure: Array<{ korean: string; japanese: string; reading?: string; pronunciation?: string }>
   step2_versions: {
     casual: string
     polite: string
     formal: string
   }
+  step2_readings?: { casual?: string; polite?: string; formal?: string }
+  step2_pronunciations?: { casual?: string; polite?: string; formal?: string }
   step3_grammar: Array<{
     point_name: string
     explanation: string

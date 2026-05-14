@@ -13,6 +13,7 @@ interface CardDetailProps {
   card: Card
   onClose: () => void
   onUpdate: (card: Card) => void
+  onDelete?: (id: string) => void
 }
 
 function speak(text: string) {
@@ -24,10 +25,20 @@ function speak(text: string) {
   window.speechSynthesis.speak(u)
 }
 
-function EpisodeCardDetail({ card, onClose, onUpdate }: CardDetailProps) {
+function EpisodeCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailProps) {
   const p = card.payload as EpisodePayload
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
   const [showRealUse, setShowRealUse] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (!confirm('이 카드를 삭제할까요?')) return
+    setDeleting(true)
+    const supabase = createBrowserSupabase()
+    await supabase.from('cards').delete().eq('id', card.id)
+    onDelete?.(card.id)
+    onClose()
+  }
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -110,6 +121,15 @@ function EpisodeCardDetail({ card, onClose, onUpdate }: CardDetailProps) {
               {card.has_real_use ? '✓ 써봤어요' : '써봤어요'}
             </Button>
           </div>
+
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="w-full py-2 rounded-xl text-[12px] text-center active:opacity-70 disabled:opacity-40"
+            style={{ color: 'var(--color-error)', backgroundColor: 'transparent' }}
+          >
+            {deleting ? '삭제 중…' : '🗑 카드 삭제'}
+          </button>
         </div>
       </div>
 
@@ -124,11 +144,21 @@ function EpisodeCardDetail({ card, onClose, onUpdate }: CardDetailProps) {
   )
 }
 
-function SentenceCardDetail({ card, onClose, onUpdate }: CardDetailProps) {
+function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailProps) {
   const payload = card.payload as SentencePayload
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
   const [showTeacher, setShowTeacher] = useState(false)
   const [showRealUse, setShowRealUse] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (!confirm('이 카드를 삭제할까요?')) return
+    setDeleting(true)
+    const supabase = createBrowserSupabase()
+    await supabase.from('cards').delete().eq('id', card.id)
+    onDelete?.(card.id)
+    onClose()
+  }
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -281,6 +311,15 @@ function SentenceCardDetail({ card, onClose, onUpdate }: CardDetailProps) {
               {card.has_real_use ? '✓ 써봤어요' : '써봤어요'}
             </Button>
           </div>
+
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="w-full py-2 rounded-xl text-[12px] text-center active:opacity-70 disabled:opacity-40"
+            style={{ color: 'var(--color-error)', backgroundColor: 'transparent' }}
+          >
+            {deleting ? '삭제 중…' : '🗑 카드 삭제'}
+          </button>
         </div>
       </div>
 
@@ -296,9 +335,9 @@ function SentenceCardDetail({ card, onClose, onUpdate }: CardDetailProps) {
   )
 }
 
-export default function CardDetail({ card, onClose, onUpdate }: CardDetailProps) {
+export default function CardDetail({ card, onClose, onUpdate, onDelete }: CardDetailProps) {
   if (card.card_type === 'episode') {
-    return <EpisodeCardDetail card={card} onClose={onClose} onUpdate={onUpdate} />
+    return <EpisodeCardDetail card={card} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
   }
-  return <SentenceCardDetail card={card} onClose={onClose} onUpdate={onUpdate} />
+  return <SentenceCardDetail card={card} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
 }

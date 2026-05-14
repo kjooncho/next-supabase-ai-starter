@@ -91,12 +91,22 @@ export const makeTranslationPrompt = (input_kr: string, correctedInput?: string)
 아래 JSON 구조를 엄격히 따라 응답하세요:
 {
   "step1_structure": [
-    { "korean": "주어구", "japanese": "対応する日本語" }
+    { "korean": "주어구", "japanese": "対応する日本語", "reading": "たいおうするにほんご", "pronunciation": "타이오-스루 니혼고" }
   ],
   "step2_versions": {
     "casual": "구어체 번역",
     "polite": "정중체 번역",
     "formal": "격식체 번역"
+  },
+  "step2_readings": {
+    "casual": "구어체 전체 요미가나",
+    "polite": "정중체 전체 요미가나",
+    "formal": "격식체 전체 요미가나"
+  },
+  "step2_pronunciations": {
+    "casual": "구어체 한국어 발음",
+    "polite": "정중체 한국어 발음",
+    "formal": "격식체 한국어 발음"
   },
   "step3_grammar": [
     { "point_name": "문법 포인트", "explanation": "설명 (한국어)", "examples": ["예시1"] }
@@ -112,10 +122,42 @@ export const makeTranslationPrompt = (input_kr: string, correctedInput?: string)
 }
 
 규칙:
-- step1_structure: 한국어 문장을 2-4개 덩어리로 분해
+- step1_structure: 한국어 문장을 2-4개 덩어리로 분해. reading은 히라가나 전체 읽기, pronunciation은 한국어 가타카나 발음 표기
 - step2_versions: 3가지 스타일로 번역 (짧고 실용적으로)
+- step2_readings: 각 버전의 히라가나 전체 읽기 (공백 구분, 문장 단위)
+- step2_pronunciations: 각 버전의 한국어 발음 표기 (공백 구분, 문장 단위)
 - step3_grammar: 핵심 문법 1-2개만
 - step4_culture: 일본인에게 이 표현이 어떻게 들리는지 포함
 - step5_etymology: 가장 핵심적인 한자 1개만
 - recommended_version: casual/polite/formal 중 상황에 맞는 추천`
 }
+
+export const IMAGE_ANALYSIS_PROMPT = `당신은 한국인 일본어 학습자를 위한 이미지 번역 AI입니다.
+이미지에서 일본어 텍스트를 추출하고 한국어로 분석해주세요.
+
+다음 JSON 형식으로만 응답하세요 (코드블록, 설명 없이 순수 JSON):
+{
+  "extracted_text": "이미지에서 추출한 원본 일본어 전체 텍스트",
+  "step1_structure": [
+    {"korean": "한국어 의미", "japanese": "일본어 구성 단위", "reading": "히라가나 읽기", "pronunciation": "한국어 발음"}
+  ],
+  "step2_versions": {
+    "casual": "전체 한국어 번역 (자연스러운 한국어)",
+    "polite": "",
+    "formal": ""
+  },
+  "step2_readings": {"casual": "전체 히라가나 읽기"},
+  "step2_pronunciations": {"casual": "전체 한국어 발음 가이드"},
+  "step3_grammar": [
+    {"point_name": "문법 포인트 이름", "explanation": "한국어 설명", "examples": []}
+  ],
+  "step4_culture": "이 표현의 문화적 맥락, 어디서 쓰이는지, 주의사항 등",
+  "step5_etymology": null,
+  "recommended_version": "casual"
+}
+
+규칙:
+- 이미지에 일본어가 없으면 extracted_text에 "(일본어 텍스트를 찾을 수 없습니다)" 기재
+- 여러 문장이면 전체를 extracted_text에 포함하되, 가장 핵심 문장을 중심으로 분석
+- step3_grammar는 1-2개만
+- step5_etymology는 핵심 한자가 있을 때만 작성, 없으면 null`

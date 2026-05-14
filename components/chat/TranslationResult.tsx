@@ -1,14 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import TeacherModal from '@/components/deck/TeacherModal'
 import { Card, CorrectionItem, SentencePayload } from '@/types'
 
 export interface TranslationResultData {
   input_kr: string
+  mode?: 'text' | 'image'
   step0_cultural: { needs_correction: boolean; correction_items: CorrectionItem[] }
-  step1_structure: { korean: string; japanese: string }[]
+  step1_structure: { korean: string; japanese: string; reading?: string; pronunciation?: string }[]
   step2_versions: { casual: string; polite: string; formal: string }
+  step2_readings?: { casual?: string; polite?: string; formal?: string }
+  step2_pronunciations?: { casual?: string; polite?: string; formal?: string }
   step3_grammar: { point_name: string; explanation: string; examples?: string[] }[]
   step4_culture: string
   step5_etymology: { kanji: string; reading: string; story: string; mnemonic?: string } | null
@@ -40,6 +44,7 @@ function speak(text: string) {
 
 export default function TranslationResult({ data, onClose }: TranslationResultProps) {
   const [showTeacher, setShowTeacher] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -118,7 +123,10 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
         <div className="px-5 flex flex-col gap-5">
           {/* 원문 */}
           <div className="text-caption text-[var(--text-tertiary)]">
-            원문: <span className="text-[var(--text-secondary)]">&ldquo;{data.input_kr}&rdquo;</span>
+            {data.mode === 'image' ? '추출된 일본어: ' : '원문: '}
+            <span className={`${data.mode === 'image' ? 'font-jp font-medium text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+              &ldquo;{data.input_kr}&rdquo;
+            </span>
           </div>
 
           {/* STEP 0: 문화 표현 교정 */}
@@ -155,7 +163,15 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
                   >
                     <span className="flex-1 text-caption text-[var(--text-secondary)]">{item.korean}</span>
                     <span className="text-caption text-[var(--text-tertiary)] mx-3">→</span>
-                    <span className="flex-1 text-body font-jp text-right">{item.japanese}</span>
+                    <div className="flex-1 text-right">
+                      <p className="text-body font-jp">{item.japanese}</p>
+                      {item.reading && (
+                        <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">{item.reading}</p>
+                      )}
+                      {item.pronunciation && (
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-accent)' }}>{item.pronunciation}</p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -171,6 +187,8 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
                   const val = data.step2_versions[key]
                   if (!val) return null
                   const isRec = key === rec
+                  const reading = data.step2_readings?.[key]
+                  const pronunciation = data.step2_pronunciations?.[key]
                   return (
                     <div
                       key={key}
@@ -186,16 +204,28 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
                       >
                         {VERSION_LABEL[key]}{isRec ? ' (추천)' : ''}
                       </p>
-                      <div className="flex items-center justify-between gap-2">
-                        <p
-                          className="font-jp text-body-md flex-1"
-                          style={{ color: isRec ? '#fff' : 'var(--text-primary)' }}
-                        >
-                          {val}
-                        </p>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p
+                            className="font-jp text-body-md"
+                            style={{ color: isRec ? '#fff' : 'var(--text-primary)' }}
+                          >
+                            {val}
+                          </p>
+                          {reading && (
+                            <p className="text-[11px] mt-1 leading-relaxed" style={{ color: isRec ? 'rgba(255,255,255,0.55)' : 'var(--text-tertiary)' }}>
+                              {reading}
+                            </p>
+                          )}
+                          {pronunciation && (
+                            <p className="text-[11px] mt-0.5 leading-relaxed font-medium" style={{ color: isRec ? 'rgba(255,255,255,0.75)' : 'var(--color-accent)' }}>
+                              {pronunciation}
+                            </p>
+                          )}
+                        </div>
                         <button
                           onClick={() => speak(val)}
-                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center active:opacity-60"
+                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center active:opacity-60 mt-0.5"
                           style={{ backgroundColor: isRec ? 'rgba(255,255,255,0.18)' : 'var(--color-tag-bg)' }}
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -286,20 +316,25 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
           </button>
 
           {/* 카드 저장 상태 */}
-          <div
-            className="rounded-2xl px-4 py-3 flex items-center justify-between"
-            style={{ backgroundColor: data.card_id ? '#e8f5e9' : 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
-          >
-            {data.card_id ? (
+          {data.card_id ? (
+            <button
+              onClick={() => { onClose(); router.push('/deck') }}
+              className="rounded-2xl px-4 py-3 flex items-center justify-between w-full active:opacity-70"
+              style={{ backgroundColor: '#e8f5e9', border: '1px solid #c8e6c9' }}
+            >
               <p className="text-caption font-medium" style={{ color: '#2e7d32' }}>
                 💾 My Deck에 저장됐어요
               </p>
-            ) : (
-              <p className="text-caption text-[var(--text-tertiary)]">
-                로그인하면 카드로 저장됩니다
-              </p>
-            )}
-          </div>
+              <span className="text-caption font-medium" style={{ color: '#2e7d32' }}>내 덱 보기 →</span>
+            </button>
+          ) : (
+            <div
+              className="rounded-2xl px-4 py-3"
+              style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
+            >
+              <p className="text-caption text-[var(--text-tertiary)]">로그인하면 카드로 저장됩니다</p>
+            </div>
+          )}
         </div>
       </div>
 

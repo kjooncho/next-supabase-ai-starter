@@ -3,6 +3,29 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { TEACHER_QUESTIONS, TeacherQuestion } from '@/lib/teacherQuestions'
+import { createBrowserSupabase } from '@/lib/supabase'
+import { Card, SentencePayload } from '@/types'
+
+function makeCardQuestion(card: Card): TeacherQuestion | null {
+  if (card.card_type !== 'sentence') return null
+  const p = card.payload as SentencePayload
+  const versions = p.step2_versions
+  if (!versions) return null
+  const rec = p.recommended_version
+  const others = (['casual', 'polite', 'formal'] as const).filter((k) => k !== rec && versions[k])
+  if (others.length === 0) return null
+  const other = others[0]
+  const label = { casual: '구어체', polite: '정중체', formal: '격식체' }
+  return {
+    id: `card-${card.id}`,
+    topic: p.korean_input,
+    tags: ['#내카드', `#${label[rec]}`],
+    expression_a: versions[rec],
+    expression_b: versions[other],
+    haru_question_jp: `「${versions[rec]}」と「${versions[other]}」、どんな違いがありますか？先生、教えてください！😊`,
+    hint: `${label[rec]}는 ${rec === 'casual' ? '친한 사이에서' : rec === 'polite' ? '일반적인 정중한 상황에서' : '공식적인 자리에서'} 씁니다.`,
+  }
+}
 
 interface Message {
   from: 'haru' | 'user'
@@ -212,11 +235,71 @@ export default function TeacherPage() {
   const [qIndex, setQIndex] = useState(0)
   const [done, setDone] = useState(false)
   const [masteryProgress, setMasteryProgress] = useState(60)
+  const [questions, setQuestions] = useState<TeacherQuestion[]>(TEACHER_QUESTIONS)
+  const [loadingCards, setLoadingCards] = useState(true)
 
-  const total = TEACHER_QUESTIONS.length
-  const q = TEACHER_QUESTIONS[qIndex]
+  useEffect(() => {
+    const supabase = createBrowserSupabase()
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) { setLoadingCards(false); return }
+      const { data: rows } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .eq('learning_status', 'learning')
+        .order('created_at', { ascending: false })
+        .limit(20)
+      if (rows && rows.length > 0) {
+        const cardQs = (rows as Card[]).map(makeCardQuestion).filter(Boolean) as TeacherQuestion[]
+        if (cardQs.length >= 3) {
+          setQuestions(cardQs.slice(0, 8))
+        }
+      }
+      setLoadingCards(false)
+    })
+  }, [])
 
-  const handleUnderstood = () => setMasteryProgress((p) => Math.min(p + 20, 100))
+  const total = questions.length
+  const q = questions[qIndex]
+
+  if (loadingCards) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-body text-[var(--text-tertiary)]">카드 불러오는 중…</p>
+      </div>
+    )
+  }
+
+  if (total === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-4">
+        <span className="text-5xl">🎓</span>
+        <div>
+          <p className="text-h2 font-bold" style={{ color: 'var(--text-primary)' }}>복습할 카드가 없어요</p>
+          <p className="text-body mt-2" style={{ color: 'var(--text-secondary)' }}>
+            채팅 탭에서 표현을 저장하면<br />선생님이 퀴즈를 내드려요
+          </p>
+        </div>
+        <button
+          onClick={() => router.push('/')}
+          className="w-full py-3 rounded-xl text-body font-medium text-white active:opacity-80"
+          style={{ backgroundColor: 'var(--color-primary)' }}
+        >
+          채팅 탭으로 이동
+        </button>
+      </div>
+    )
+  }
+
+  const handleUnderstood = async () => {
+    const next = Math.min(masteryProgress + 20, 100)
+    setMasteryProgress(next)
+    if (next >= 100 && q.id.startsWith('card-')) {
+      const cardId = q.id.replace('card-', '')
+      const supabase = createBrowserSupabase()
+      await supabase.from('cards').update({ learning_status: 'mastered' }).eq('id', cardId)
+    }
+  }
 
   const handleNext = () => {
     if (qIndex + 1 >= total) {
@@ -241,9 +324,18 @@ export default function TeacherPage() {
           </div>
           <p className="text-body-md font-bold mt-2" style={{ color: 'var(--color-accent)' }}>{masteryProgress}%</p>
         </div>
-        <button onClick={() => router.back()} className="w-full py-3 rounded-xl text-body font-medium text-white" style={{ backgroundColor: 'var(--color-primary)' }}>
-          내 카드로 돌아가기
-        </button>
+        <div className="flex flex-col gap-2 w-full">
+          <button onClick={() => router.back()} className="w-full py-3 rounded-xl text-body font-medium text-white active:opacity-80" style={{ backgroundColor: 'var(--color-primary)' }}>
+            내 카드로 돌아가기
+          </button>
+          <button
+            onClick={() => { setDone(false); setQIndex(0); setMasteryProgress(60) }}
+            className="w-full py-3 rounded-xl text-body font-medium active:opacity-70"
+            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)', color: 'var(--text-secondary)' }}
+          >
+            다시 풀기
+          </button>
+        </div>
       </div>
     )
   }
@@ -261,7 +353,12 @@ export default function TeacherPage() {
           <div className="flex-1 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-white text-xl">🎓</span>
-              <span className="text-white text-body font-bold">선생님 모드</span>
+              <div>
+                <span className="text-white text-body font-bold">선생님 모드</span>
+                {questions[0]?.id.startsWith('card-') && (
+                  <p className="text-white/60 text-[10px] mt-0.5">내 카드 기반</p>
+                )}
+              </div>
             </div>
             <span className="text-white/70 text-caption">{qIndex + 1}/{total} 질문</span>
           </div>

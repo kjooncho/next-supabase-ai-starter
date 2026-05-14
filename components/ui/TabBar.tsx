@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { href: '/', label: '채팅', icon: '💬' },
-  { href: '/map', label: '지도', icon: '🗺️' },
-  { href: '/life', label: '생활', icon: '🏠' },
-  { href: '/deck', label: '내 카드', icon: '📚' },
+  { href: '/', label: '채팅', icon: '💬', kanji: false },
+  { href: '/map', label: '지도', icon: '🗺️', kanji: false },
+  { href: '/life', label: '생활', icon: '🏠', kanji: false },
+  { href: '/deck', label: '내 카드', icon: '📚', kanji: false },
+  { href: '/kanji', label: '漢字', icon: '漢', kanji: true },
 ] as const
 
 export default function TabBar() {
@@ -26,7 +27,12 @@ export default function TabBar() {
             href={tab.href}
             className="flex-1 flex flex-col items-center gap-0.5"
           >
-            <span className="text-xl leading-none">{tab.icon}</span>
+            <span
+              className={tab.kanji ? 'font-jp text-[18px] font-bold leading-none' : 'text-xl leading-none'}
+              style={tab.kanji ? { color: isActive ? 'var(--color-accent)' : 'var(--text-tertiary)' } : undefined}
+            >
+              {tab.icon}
+            </span>
             <span
               className="text-caption"
               style={{ color: isActive ? 'var(--color-accent)' : 'var(--text-tertiary)' }}

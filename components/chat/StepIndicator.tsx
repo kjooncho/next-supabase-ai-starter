@@ -3,9 +3,11 @@
 interface StepIndicatorProps {
   currentStep: number // 0~5, -1 = 완료
   totalSteps?: number
+  mode?: 'text' | 'image'
 }
 
 const STEP_LABELS = ['문화 교정', '구조 대응', '번역 3버전', '문법', '문화 맥락', '니모닉']
+const IMAGE_STEP_LABELS = ['이미지 분석', '구조 분석', '한국어 번역', '문법', '문화', '어원']
 const STEP_COLORS = [
   'var(--step-0)',
   'var(--step-1)',
@@ -18,10 +20,12 @@ const STEP_COLORS = [
 export default function StepIndicator({
   currentStep,
   totalSteps = 6,
+  mode = 'text',
 }: StepIndicatorProps) {
+  const labels = mode === 'image' ? IMAGE_STEP_LABELS : STEP_LABELS
   return (
     <div className="flex items-center gap-1 flex-wrap">
-      {STEP_LABELS.slice(0, totalSteps).map((label, i) => {
+      {labels.slice(0, totalSteps).map((label, i) => {
         const isDone = i < currentStep || currentStep === -1
         const isActive = i === currentStep
 
@@ -40,7 +44,7 @@ export default function StepIndicator({
                   <span className="animate-bounce" style={{ animationDelay: '300ms' }}>·</span>
                 </span>
               ) : null}
-              {` STEP ${i}`}
+              {` ${label}`}
             </span>
             {i < totalSteps - 1 && (
               <span className="text-[var(--text-tertiary)] text-caption">›</span>

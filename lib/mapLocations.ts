@@ -16,6 +16,7 @@ export interface MapLocation {
   card_count: number
   real_use_count: number
   episode_id?: string
+  series_id?: string  // 연결된 생활 에피소드 시리즈 ID
   // position on map (% from top-left)
   top: number
   left: number
@@ -30,6 +31,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     emoji: '🛒',
     tag: '쇼핑',
     description_kr: '장을 볼 때 쓰는 일본어',
+    series_id: 'shopping',
     card_count: 8,
     real_use_count: 5,
     expressions: [
@@ -50,6 +52,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     emoji: '🧒',
     tag: '육아',
     description_kr: '어린이집·유치원에서 쓰는 일본어',
+    series_id: 'nursery',
     card_count: 6,
     real_use_count: 1,
     expressions: [
@@ -70,6 +73,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     emoji: '🏥',
     tag: '의료',
     description_kr: '병원·약국에서 쓰는 일본어',
+    series_id: 'hospital',
     card_count: 10,
     real_use_count: 2,
     expressions: [

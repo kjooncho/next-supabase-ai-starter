@@ -132,32 +132,41 @@ export const makeTranslationPrompt = (input_kr: string, correctedInput?: string)
 - recommended_version: casual/polite/formal 중 상황에 맞는 추천`
 }
 
-export const IMAGE_ANALYSIS_PROMPT = `당신은 한국인 일본어 학습자를 위한 이미지 번역 AI입니다.
-이미지에서 일본어 텍스트를 추출하고 한국어로 분석해주세요.
+export const IMAGE_OCR_PROMPT = `이 이미지에 있는 일본어 텍스트를 그대로 추출해주세요.
 
-다음 JSON 형식으로만 응답하세요 (코드블록, 설명 없이 순수 JSON):
+지침:
+- 히라가나, 가타카나, 한자를 모두 포함해서 추출합니다
+- 흐릿하거나 작은 글씨도 최선을 다해 읽어냅니다
+- 여러 줄이면 줄바꿈을 유지합니다
+- 이미지에 보이는 원본 텍스트만 출력합니다 (번역·설명 금지)
+- 일본어가 전혀 없으면 "(없음)"만 출력합니다`
+
+export const makeImageTranslationPrompt = (japanese: string) => `다음 일본어를 분석하고 한국어로 번역하세요.
+
+일본어 원문: "${japanese}"
+
+아래 JSON 구조를 엄격히 따라 응답하세요 (코드블록 없이 순수 JSON):
 {
-  "extracted_text": "이미지에서 추출한 원본 일본어 전체 텍스트",
   "step1_structure": [
     {"korean": "한국어 의미", "japanese": "일본어 구성 단위", "reading": "히라가나 읽기", "pronunciation": "한국어 발음"}
   ],
   "step2_versions": {
-    "casual": "전체 한국어 번역 (자연스러운 한국어)",
+    "casual": "전체 자연스러운 한국어 번역",
     "polite": "",
     "formal": ""
   },
   "step2_readings": {"casual": "전체 히라가나 읽기"},
   "step2_pronunciations": {"casual": "전체 한국어 발음 가이드"},
   "step3_grammar": [
-    {"point_name": "문법 포인트 이름", "explanation": "한국어 설명", "examples": []}
+    {"point_name": "핵심 문법 포인트", "explanation": "한국어 설명", "examples": ["예시"]}
   ],
-  "step4_culture": "이 표현의 문화적 맥락, 어디서 쓰이는지, 주의사항 등",
+  "step4_culture": "이 표현의 문화적 맥락, 쓰이는 상황, 주의사항 (2-3문장)",
   "step5_etymology": null,
   "recommended_version": "casual"
 }
 
 규칙:
-- 이미지에 일본어가 없으면 extracted_text에 "(일본어 텍스트를 찾을 수 없습니다)" 기재
-- 여러 문장이면 전체를 extracted_text에 포함하되, 가장 핵심 문장을 중심으로 분석
-- step3_grammar는 1-2개만
-- step5_etymology는 핵심 한자가 있을 때만 작성, 없으면 null`
+- step1_structure: 원문을 2-4개 단위로 분해. reading=히라가나, pronunciation=한국어 발음
+- step2_versions.casual: 자연스러운 한국어 번역 (polite, formal은 빈 문자열)
+- step3_grammar: 핵심 문법 1-2개
+- step5_etymology: 핵심 한자가 있을 때만, 없으면 null`

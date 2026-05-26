@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Volume2, Volume1, ChevronRight } from 'lucide-react'
-import { MAP_LOCATIONS, MONTHLY_VISITS, MapLocation } from '@/lib/mapLocations'
+import { MAP_LOCATIONS, MapLocation, MonthlyVisit, VisitStatus } from '@/lib/mapLocations'
+import { SERIES_LIST } from '@/lib/episodes'
+import { createBrowserSupabase } from '@/lib/supabase'
 import JpReading from '@/components/ui/JpReading'
 
 function speak(text: string) {
@@ -16,7 +18,7 @@ function speak(text: string) {
 
 function StatusBadge({ status }: { status: 'done' | 'in-progress' | 'not-started' }) {
   if (status === 'done') return <span className="text-[11px] font-medium" style={{ color: 'var(--color-accent)' }}>완료</span>
-  if (status === 'in-progress') return <span className="text-[11px] font-medium" style={{ color: '#27ae60' }}>진행중</span>
+  if (status === 'in-progress') return <span className="text-[11px] font-medium" style={{ color: 'var(--color-real-use)' }}>진행중</span>
   return <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>미시작</span>
 }
 
@@ -86,11 +88,11 @@ function LocationPopup({ loc, onLearn, onClose }: {
   const rightAligned = loc.left > 60
   return (
     <div
-      className="absolute z-20 rounded-2xl shadow-xl w-[210px]"
+      className="absolute z-20 rounded-2xl shadow-xl w-[190px]"
       style={{
         top: `${loc.top}%`,
-        left: rightAligned ? 'auto' : `${Math.min(loc.left + 5, 52)}%`,
-        right: rightAligned ? `${100 - loc.left + 5}%` : 'auto',
+        left: rightAligned ? 'auto' : `${Math.min(loc.left + 5, 46)}%`,
+        right: rightAligned ? `${Math.min(100 - loc.left + 5, 46)}%` : 'auto',
         backgroundColor: 'var(--color-bg)',
         border: '1px solid var(--color-hairline)',
         transform: 'translateY(-110%)',
@@ -193,9 +195,9 @@ function ExpressionsSheet({ loc, onClose, isCompleted, onToggleComplete }: {
               onClick={onToggleComplete}
               className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium active:opacity-70"
               style={{
-                backgroundColor: isCompleted ? '#e8f5e9' : 'var(--color-surface)',
-                border: `1px solid ${isCompleted ? '#c8e6c9' : 'var(--color-hairline)'}`,
-                color: isCompleted ? '#2e7d32' : 'var(--text-secondary)',
+                backgroundColor: isCompleted ? 'var(--color-success-bg)' : 'var(--color-surface)',
+                border: `1px solid ${isCompleted ? 'var(--color-success-border)' : 'var(--color-hairline)'}`,
+                color: isCompleted ? 'var(--color-success-text)' : 'var(--text-secondary)',
               }}
             >
               {isCompleted ? '✓ 학습완료' : '학습 완료 표시'}
@@ -258,12 +260,58 @@ export default function MapPage() {
   const [sheet, setSheet] = useState<MapLocation | null>(null)
   const [activeTag, setActiveTag] = useState('전체')
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+  const [monthlyVisits, setMonthlyVisits] = useState<MonthlyVisit[]>([])
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem('completed_locations')
       if (raw) setCompletedIds(new Set(JSON.parse(raw)))
     } catch {}
+  }, [])
+
+  useEffect(() => {
+    const supabase = createBrowserSupabase()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+
+      const startOfMonth = new Date()
+      startOfMonth.setDate(1)
+      startOfMonth.setHours(0, 0, 0, 0)
+
+      const { data: cards } = await supabase
+        .from('cards')
+        .select('payload')
+        .eq('user_id', user.id)
+        .eq('card_type', 'episode')
+        .gte('created_at', startOfMonth.toISOString())
+
+      if (!cards || cards.length === 0) return
+
+      // episode_id → series_id 추출 (e.g. 'hospital-01' → 'hospital')
+      const episodeIdsBySeriesId: Record<string, Set<string>> = {}
+      for (const card of cards) {
+        const episodeId = (card.payload as Record<string, unknown>)?.episode_id as string
+        if (!episodeId) continue
+        const seriesId = episodeId.replace(/-\d+$/, '')
+        if (!episodeIdsBySeriesId[seriesId]) episodeIdsBySeriesId[seriesId] = new Set()
+        episodeIdsBySeriesId[seriesId].add(episodeId)
+      }
+
+      const visits: MonthlyVisit[] = []
+      for (const loc of MAP_LOCATIONS) {
+        if (!loc.series_id) continue
+        const episodeIds = episodeIdsBySeriesId[loc.series_id]
+        if (!episodeIds || episodeIds.size === 0) continue
+
+        const series = SERIES_LIST.find((s) => s.id === loc.series_id)
+        const total = series?.total ?? 5
+        const done = episodeIds.size
+        const progress = Math.min(Math.round((done / total) * 100), 100)
+        const status: VisitStatus = progress >= 100 ? 'done' : 'in-progress'
+        visits.push({ location_id: loc.id, status, progress })
+      }
+      setMonthlyVisits(visits)
+    })
   }, [])
 
   const markComplete = (id: string) => {
@@ -285,11 +333,10 @@ export default function MapPage() {
   return (
     <div className="flex flex-col h-full">
       <header
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center justify-between px-4 z-10"
+        className="fixed top-0 inset-x-0 h-[56px] flex items-center justify-between px-4 z-10"
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <div className="flex items-center gap-2">
-          <span className="text-white text-xl">🗺️</span>
           <div>
             <p className="text-white text-body font-bold leading-none">우리 동네 학습 지도</p>
             <p className="text-white/60 text-[11px] mt-0.5">탭하면 표현이 나와요</p>
@@ -306,7 +353,7 @@ export default function MapPage() {
         </span>
       </header>
 
-      <div className="flex-1 overflow-y-auto pb-[80px]" style={{ paddingTop: '56px' }}>
+      <div className="flex-1 overflow-y-auto pb-4">
         {/* 진행률 바 */}
         <div className="h-1 w-full" style={{ backgroundColor: 'var(--color-hairline)' }}>
           <div
@@ -382,7 +429,7 @@ export default function MapPage() {
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 border-white"
                     style={{
-                      backgroundColor: isDone ? '#2e7d32' : loc.color,
+                      backgroundColor: isDone ? 'var(--color-success-text)' : loc.color,
                       boxShadow: isActive
                         ? `0 0 0 4px ${loc.color}55, 0 4px 14px rgba(0,0,0,0.25)`
                         : '0 2px 8px rgba(0,0,0,0.18)',
@@ -394,7 +441,7 @@ export default function MapPage() {
                 </div>
                 <span
                   className="text-[9px] font-medium px-1.5 py-0.5 rounded-full whitespace-nowrap shadow-sm font-jp"
-                  style={{ backgroundColor: isDone ? '#2e7d32' : loc.color, color: '#fff' }}
+                  style={{ backgroundColor: isDone ? 'var(--color-success-text)' : loc.color, color: '#fff' }}
                 >
                   {loc.name_jp}
                 </span>
@@ -413,36 +460,42 @@ export default function MapPage() {
 
         {/* 이번 달 방문한 장소 */}
         <div className="px-4 pt-4 pb-2">
-          <p className="text-body font-bold text-[var(--text-primary)] mb-3">이번 달 방문한 장소</p>
-          <div className="flex flex-col gap-3">
-            {MONTHLY_VISITS.map((visit) => {
-              const loc = MAP_LOCATIONS.find((l) => l.id === visit.location_id)
-              if (!loc) return null
-              return (
-                <button
-                  key={visit.location_id}
-                  className="flex items-center gap-3 active:opacity-70 text-left"
-                  onClick={() => setSheet(loc)}
-                >
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-base flex-shrink-0" style={{ backgroundColor: `${loc.color}22` }}>
-                    {loc.emoji}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-jp text-caption font-medium">{loc.name_jp}</span>
-                      <StatusBadge status={visit.status} />
+          <p className="text-body font-bold text-[var(--text-primary)] mb-3">이번 달 학습한 에피소드</p>
+          {monthlyVisits.length === 0 ? (
+            <div className="rounded-xl px-4 py-3 text-center" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}>
+              <p className="text-caption text-[var(--text-tertiary)]">생활 탭에서 에피소드를 학습하면<br />여기에 진행상황이 나타나요</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {monthlyVisits.map((visit) => {
+                const loc = MAP_LOCATIONS.find((l) => l.id === visit.location_id)
+                if (!loc) return null
+                return (
+                  <button
+                    key={visit.location_id}
+                    className="flex items-center gap-3 active:opacity-70 text-left"
+                    onClick={() => setSheet(loc)}
+                  >
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-base flex-shrink-0" style={{ backgroundColor: `${loc.color}22` }}>
+                      {loc.emoji}
                     </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-hairline)' }}>
-                      {visit.progress > 0 && (
-                        <div className="h-full rounded-full" style={{ width: `${visit.progress}%`, backgroundColor: visit.status === 'done' ? 'var(--color-accent)' : '#27ae60' }} />
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-jp text-caption font-medium">{loc.name_jp}</span>
+                        <StatusBadge status={visit.status} />
+                      </div>
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-hairline)' }}>
+                        {visit.progress > 0 && (
+                          <div className="h-full rounded-full" style={{ width: `${visit.progress}%`, backgroundColor: visit.status === 'done' ? 'var(--color-accent)' : 'var(--color-real-use)' }} />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <ChevronRight size={14} color="var(--text-tertiary)" className="flex-shrink-0" />
-                </button>
-              )
-            })}
-          </div>
+                    <ChevronRight size={14} color="var(--text-tertiary)" className="flex-shrink-0" />
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* 태그 필터 + 전체 장소 */}
@@ -450,21 +503,24 @@ export default function MapPage() {
           <div className="px-4 mb-2">
             <p className="text-body font-bold text-[var(--text-primary)]">전체 장소</p>
           </div>
-          <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setActiveTag(tag)}
-                className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium active:opacity-70"
-                style={{
-                  backgroundColor: activeTag === tag ? 'var(--color-primary)' : 'var(--color-surface)',
-                  color: activeTag === tag ? '#fff' : 'var(--text-secondary)',
-                  border: `1px solid ${activeTag === tag ? 'var(--color-primary)' : 'var(--color-hairline)'}`,
-                }}
-              >
-                {tag}
-              </button>
-            ))}
+          <div className="overflow-x-auto no-scrollbar pb-3">
+            <div className="flex gap-2 px-4">
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setActiveTag(tag)}
+                  className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium active:opacity-70"
+                  style={{
+                    backgroundColor: activeTag === tag ? 'var(--color-primary)' : 'var(--color-surface)',
+                    color: activeTag === tag ? '#fff' : 'var(--text-secondary)',
+                    border: `1px solid ${activeTag === tag ? 'var(--color-primary)' : 'var(--color-hairline)'}`,
+                  }}
+                >
+                  {tag}
+                </button>
+              ))}
+              <div className="w-4 flex-shrink-0" />
+            </div>
           </div>
           <div className="px-4 grid grid-cols-2 gap-2">
             {filteredLocations.map((loc) => (

@@ -6,7 +6,7 @@
 "JLPT에 안 나오는 생활 문화"를 핵심 차별점으로 한다.
 
 - **Figma**: https://www.figma.com/design/uy0KFFHL8JuoGEfVW5MhxX
-- **스택**: Next.js App Router + Supabase + Vercel + Claude API (Haiku 4.5)
+- **스택**: Next.js App Router + Supabase + Vercel + Claude API (텍스트: Haiku 4.5, 이미지OCR: Sonnet 4.6)
 - **타겟**: 모바일 웹 (390px 기준, iPhone 14)
 
 ---
@@ -29,7 +29,11 @@
   /* Semantic */
   --color-success: #6b8f71;       /* Sage Green — 숙달완료 */
   --color-cultural: #f5a623;      /* Amber — 문화 노트 */
+  --color-cultural-bg: #fef6ec;   /* Amber tint — 문화 카드 배경 */
+  --color-cultural-border: #f5d4a3; /* Amber border */
   --color-mnemonic: #9b59b6;      /* Purple — 니모닉 */
+  --color-mnemonic-bg: #f0e9f4;   /* Purple tint — 니모닉 카드 배경 */
+  --color-mnemonic-border: #d8bfe8; /* Purple border */
   --color-real-use: #27ae60;      /* Bright Green — 써봤어요 */
   --color-error: #e74c3c;         /* Red — 삭제, 완전정복 */
 
@@ -110,8 +114,8 @@ font-family: 'Noto Serif JP', serif;
 ```
 
 - `translation`: 배경 `--color-surface`
-- `cultural`: 배경 `#fef6ec` (--color-cultural의 옅은 tint)
-- `mnemonic`: 배경 `#f0e9f4`
+- `cultural`: 배경 `var(--color-cultural-bg)`, 테두리 `var(--color-cultural-border)`
+- `mnemonic`: 배경 `var(--color-mnemonic-bg)`, 테두리 `var(--color-mnemonic-border)`
 
 ### ChatBubble
 
@@ -147,20 +151,22 @@ font-family: 'Noto Serif JP', serif;
 - 탭바 높이: `h-[80px]` (하단 고정)
 - 헤더 높이: `h-[56px]`
 
-### 4탭 구조
+### 5탭 구조
 
 ```
-채팅(/) | 캘린더(/calendar) | 생활(/life) | 내 카드(/deck)
+채팅(/) | 지도(/map) | 생활(/life) | 내 카드(/deck) | 漢字(/kanji)
 ```
 
 ---
 
 ## AI / API 규칙
 
-- 모델: `claude-haiku-4-5-20251001` (기본)
+- 모델 (텍스트 번역): `claude-haiku-4-5-20251001` — `lib/anthropic.ts`의 `MODEL` 상수
+- 모델 (이미지 OCR): `claude-sonnet-4-6` — `app/api/image-translate/route.ts`에 하드코딩
 - Prompt Caching 필수 적용 (system prompt에 `cache_control`)
-- Rate limit: 사용자당 50회/일 (Edge Function에서 체크)
-- 입력 길이 제한: 500자
+- SSE keepalive: 5초마다 `: ping\n\n` 전송 (Vercel idle timeout 방지)
+- Rate limit: 사용자당 50회/일 (`lib/rate-limit.ts`)
+- 입력 길이 제한: 500자 (`lib/anthropic.ts`의 `INPUT_LIMIT`)
 - 비용 상한: $30/day (Anthropic Console Spend Limit)
 
 ### 문화 교정 프롬프트
@@ -182,32 +188,40 @@ card_type: `sentence` | `calendar` | `episode`
 
 ---
 
-## 파일 구조 (예정)
+## 파일 구조
 
 ```
 ~/myniche/app/          ← Next.js App Router
 ├── (tabs)/
-│   ├── page.tsx        ← 채팅 메인
-│   ├── calendar/
-│   ├── life/
-│   └── deck/
+│   ├── page.tsx        ← 채팅 (번역)
+│   ├── map/            ← 지도 (학습 지도)
+│   ├── life/           ← 생활 일본어 에피소드 목록
+│   ├── life/[id]/      ← 에피소드 상세
+│   ├── deck/           ← 내 카드
+│   ├── kanji/          ← 한자 학습
+│   └── teacher/        ← AI 선생님
 ├── api/
-│   └── chat/route.ts   ← Edge Function (문화 교정 + 번역)
+│   ├── chat/route.ts           ← 문화 교정 + 번역 (SSE)
+│   ├── image-translate/route.ts← 이미지 OCR + 번역 (SSE)
+│   ├── teacher/route.ts        ← AI 선생님 대화
+│   └── teacher-quiz/route.ts   ← 퀴즈 생성
 ├── components/
-│   ├── ui/             ← Button, Card, Badge 등
-│   ├── chat/           ← ChatBubble, InputBar, StepIndicator
-│   └── deck/           ← CardGrid, CardDetailModal
+│   ├── ui/             ← Button, TabBar 등
+│   └── chat/           ← 번역 결과 컴포넌트
 └── lib/
-    ├── supabase.ts
-    └── anthropic.ts
+    ├── supabase.ts     ← Supabase client
+    ├── anthropic.ts    ← MODEL, INPUT_LIMIT 상수
+    ├── rate-limit.ts   ← 일일 사용량 체크
+    ├── kanji.ts        ← JLPT N5 한자 데이터 (71개)
+    ├── episodes.ts     ← 에피소드 데이터 (41개)
+    └── prompts.ts      ← 시스템 프롬프트 모음
 ```
 
 ---
 
 ## 금지 사항
 
-- 색상 하드코딩 (`#e8541a` 직접 사용 ❌)
-- 캘린더탭·생활탭 v1에 추가 ❌ (v1.1로 예정)
-- PostHog·Sentry 출시 전 추가 ❌ (출시 후 γ 결정)
+- 색상 하드코딩 (`#e8541a` 직접 사용 ❌) — CSS 변수 사용
+- PostHog·Sentry 출시 전 추가 ❌ (출시 후 결정)
 - `any` 타입 사용 ❌
 - Tailwind arbitrary value 남용 ❌ (CSS 변수 사용)

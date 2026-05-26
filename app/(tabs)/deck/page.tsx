@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Volume1, Search } from 'lucide-react'
+import { Volume2, Search } from 'lucide-react'
 import { createBrowserSupabase } from '@/lib/supabase'
 import { Card, SentencePayload, getMasteryStage } from '@/types'
 import CardGrid from '@/components/deck/CardGrid'
@@ -58,7 +58,7 @@ function TodayCard({ cards, onOpen, onStudy }: { cards: Card[]; onOpen: (c: Card
           className="w-7 h-7 rounded-full flex items-center justify-center active:opacity-60"
           style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
         >
-          <Volume1 size={13} color="#fff" />
+          <Volume2 size={13} color="#fff" />
         </button>
       </div>
 
@@ -170,7 +170,7 @@ export default function DeckPage() {
   return (
     <div className="flex flex-col h-full">
       <header
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center justify-between px-4 z-10"
+        className="fixed top-0 inset-x-0 h-[56px] flex items-center justify-between px-4 z-10"
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <span className="text-white text-h2 font-bold">내 카드</span>
@@ -246,32 +246,35 @@ export default function DeckPage() {
             </div>
             <DeckStats cards={cards} />
             {/* 마스터리 필터 */}
-            <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
-              {([
-                { key: 'all', label: '전체', color: 'var(--color-primary)' },
-                { key: 'learning', label: '학습중', color: 'var(--mastery-learning)' },
-                { key: 'mastered', label: '숙달완료', color: 'var(--mastery-mastered)' },
-                { key: 'real-use', label: '써봤어요', color: 'var(--mastery-real-use)' },
-                { key: 'conquered', label: '완전정복', color: 'var(--mastery-conquered)' },
-              ] as const).map(({ key, label, color }) => {
-                const count = key === 'all' ? cards.length : cards.filter((c) => getMasteryStage(c.learning_status, c.has_real_use) === key).length
-                const isActive = activeFilter === key
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setActiveFilter(key)}
-                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium active:opacity-70"
-                    style={{
-                      backgroundColor: isActive ? color : 'var(--color-surface)',
-                      color: isActive ? '#fff' : 'var(--text-secondary)',
-                      border: `1px solid ${isActive ? color : 'var(--color-hairline)'}`,
-                    }}
-                  >
-                    {label}
-                    <span className="text-[10px] opacity-80">({count})</span>
-                  </button>
-                )
-              })}
+            <div className="-mx-4 overflow-x-auto no-scrollbar mb-4">
+              <div className="flex gap-2 px-4 pb-0.5">
+                {([
+                  { key: 'all', label: '전체', color: 'var(--color-primary)' },
+                  { key: 'learning', label: '학습중', color: 'var(--mastery-learning)' },
+                  { key: 'mastered', label: '숙달완료', color: 'var(--mastery-mastered)' },
+                  { key: 'real-use', label: '써봤어요', color: 'var(--mastery-real-use)' },
+                  { key: 'conquered', label: '완전정복', color: 'var(--mastery-conquered)' },
+                ] as const).map(({ key, label, color }) => {
+                  const count = key === 'all' ? cards.length : cards.filter((c) => getMasteryStage(c.learning_status, c.has_real_use) === key).length
+                  const isActive = activeFilter === key
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setActiveFilter(key)}
+                      className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium active:opacity-70"
+                      style={{
+                        backgroundColor: isActive ? color : 'var(--color-surface)',
+                        color: isActive ? '#fff' : 'var(--text-secondary)',
+                        border: `1px solid ${isActive ? color : 'var(--color-hairline)'}`,
+                      }}
+                    >
+                      {label}
+                      <span className="text-[10px] opacity-80">({count})</span>
+                    </button>
+                  )
+                })}
+                <div className="w-4 flex-shrink-0" />
+              </div>
             </div>
             {displayCards.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-2">

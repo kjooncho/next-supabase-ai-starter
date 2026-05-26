@@ -72,7 +72,7 @@ function EpisodeCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailProp
           {/* 헤더 */}
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-[11px] px-2 py-0.5 rounded font-medium" style={{ backgroundColor: '#f0e9f4', color: 'var(--color-mnemonic)' }}>생활</span>
+              <span className="text-[11px] px-2 py-0.5 rounded font-medium" style={{ backgroundColor: 'var(--color-mnemonic-bg)', color: 'var(--color-mnemonic)' }}>생활</span>
               <p className="text-caption text-[var(--text-tertiary)] mt-1">{p.title_kr}</p>
             </div>
             <MasteryBadge stage={stage} size="md" />
@@ -144,6 +144,7 @@ function EpisodeCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailProp
 
 function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailProps) {
   const payload = card.payload as SentencePayload
+  const isImageCard = payload.mode === 'image'
   const stage = getMasteryStage(card.learning_status, card.has_real_use)
   const [showTeacher, setShowTeacher] = useState(false)
   const [showRealUse, setShowRealUse] = useState(false)
@@ -188,9 +189,21 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
         <div className="px-5 py-3 flex flex-col gap-5">
           {/* 헤더 */}
           <div className="flex items-start justify-between">
-            <div>
-              <p className="text-caption text-[var(--text-tertiary)]">원문</p>
-              <p className="text-body-md font-medium mt-0.5">{payload.korean_input}</p>
+            <div className="flex-1 mr-3">
+              {isImageCard ? (
+                <>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: 'var(--color-cultural-bg)', color: 'var(--color-cultural)' }}>📷 이미지 번역</span>
+                  </div>
+                  <p className="font-jp text-body-md font-medium mt-0.5">{payload.korean_input}</p>
+                  <p className="text-caption text-[var(--text-tertiary)] mt-0.5">{payload.step2_versions?.casual}</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-caption text-[var(--text-tertiary)]">원문</p>
+                  <p className="text-body-md font-medium mt-0.5">{payload.korean_input}</p>
+                </>
+              )}
             </div>
             <MasteryBadge stage={stage} size="md" />
           </div>
@@ -198,7 +211,7 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
           {/* STEP 1 */}
           {payload.step1_structure?.length > 0 && (
             <section>
-              <p className="text-caption text-[var(--color-accent)] font-medium mb-2">구조 대응</p>
+              <p className="text-caption text-[var(--color-accent)] font-medium mb-2">{isImageCard ? '구조 분석' : '구조 대응'}</p>
               <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-hairline)' }}>
                 {payload.step1_structure.map((item, i) => (
                   <div
@@ -209,9 +222,19 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
                       borderBottom: i < payload.step1_structure.length - 1 ? '1px solid var(--color-hairline)' : undefined,
                     }}
                   >
-                    <span className="flex-1 text-caption text-[var(--text-secondary)]">{item.korean}</span>
-                    <span className="text-caption text-[var(--text-tertiary)] mx-2">→</span>
-                    <span className="flex-1 text-caption font-jp text-right">{item.japanese}</span>
+                    {isImageCard ? (
+                      <>
+                        <span className="flex-1 text-caption font-jp">{item.japanese}</span>
+                        <span className="text-caption text-[var(--text-tertiary)] mx-2">→</span>
+                        <span className="flex-1 text-caption text-[var(--text-secondary)] text-right">{item.korean}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex-1 text-caption text-[var(--text-secondary)]">{item.korean}</span>
+                        <span className="text-caption text-[var(--text-tertiary)] mx-2">→</span>
+                        <span className="flex-1 text-caption font-jp text-right">{item.japanese}</span>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -221,9 +244,13 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
           {/* STEP 2 */}
           {payload.step2_versions && (
             <section>
-              <p className="text-caption text-[var(--color-accent)] font-medium mb-2">번역</p>
+              <p className="text-caption text-[var(--color-accent)] font-medium mb-2">{isImageCard ? '한국어 번역' : '번역'}</p>
               <div className="flex flex-col gap-2">
-                {Object.entries(payload.step2_versions).map(([key, val]) => {
+                {(isImageCard
+                  ? [['casual', payload.step2_versions.casual]] as [string, string][]
+                  : Object.entries(payload.step2_versions)
+                ).map(([key, val]) => {
+                  if (!val) return null
                   const isRec = key === payload.recommended_version
                   return (
                     <div
@@ -234,18 +261,22 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
                         border: '1px solid var(--color-hairline)',
                       }}
                     >
-                      <p className="text-caption mb-0.5" style={{ color: isRec ? 'rgba(255,255,255,0.6)' : 'var(--text-tertiary)' }}>
-                        {key === 'casual' ? '구어체' : key === 'polite' ? '정중체' : '격식체'}{isRec && ' (추천)'}
-                      </p>
+                      {!isImageCard && (
+                        <p className="text-caption mb-0.5" style={{ color: isRec ? 'rgba(255,255,255,0.6)' : 'var(--text-tertiary)' }}>
+                          {key === 'casual' ? '구어체' : key === 'polite' ? '정중체' : '격식체'}{isRec && ' (추천)'}
+                        </p>
+                      )}
                       <div className="flex items-center justify-between gap-2">
-                        <p className="font-jp text-body-md flex-1" style={{ color: isRec ? '#fff' : 'var(--text-primary)' }}>{val}</p>
-                        <button
-                          onClick={() => speak(val)}
-                          className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center active:opacity-60"
-                          style={{ backgroundColor: isRec ? 'rgba(255,255,255,0.15)' : 'var(--color-tag-bg)' }}
-                        >
-                          <Volume2 size={14} color={isRec ? '#fff' : 'var(--text-secondary)'} />
-                        </button>
+                        <p className={`${isImageCard ? '' : 'font-jp'} text-body-md flex-1`} style={{ color: isRec ? '#fff' : 'var(--text-primary)' }}>{val}</p>
+                        {!isImageCard && (
+                          <button
+                            onClick={() => speak(val)}
+                            className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center active:opacity-60"
+                            style={{ backgroundColor: isRec ? 'rgba(255,255,255,0.15)' : 'var(--color-tag-bg)' }}
+                          >
+                            <Volume2 size={14} color={isRec ? '#fff' : 'var(--text-secondary)'} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   )
@@ -276,7 +307,7 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
 
           {/* STEP 4 */}
           {payload.step4_culture && (
-            <section className="rounded-xl px-4 py-3" style={{ backgroundColor: '#fef6ec' }}>
+            <section className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--color-cultural-bg)', border: '1px solid var(--color-cultural-border)' }}>
               <p className="text-caption font-medium mb-1" style={{ color: 'var(--color-cultural)' }}>💡 문화 맥락</p>
               <p className="text-caption text-[var(--text-secondary)] leading-relaxed">{payload.step4_culture}</p>
             </section>
@@ -284,7 +315,7 @@ function SentenceCardDetail({ card, onClose, onUpdate, onDelete }: CardDetailPro
 
           {/* STEP 5 */}
           {payload.step5_etymology && (
-            <section className="rounded-xl px-4 py-3" style={{ backgroundColor: '#f0e9f4' }}>
+            <section className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--color-mnemonic-bg)', border: '1px solid var(--color-mnemonic-border)' }}>
               <p className="text-caption font-medium mb-1" style={{ color: 'var(--color-mnemonic)' }}>💡 니모닉</p>
               <p className="font-jp text-body-md font-medium">{payload.step5_etymology.kanji}</p>
               <p className="text-caption text-[var(--text-secondary)] mt-1 leading-relaxed">{payload.step5_etymology.story}</p>

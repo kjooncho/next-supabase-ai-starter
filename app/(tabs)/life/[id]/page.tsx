@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Volume1, ChevronLeft } from 'lucide-react'
+import { Volume2, ChevronLeft } from 'lucide-react'
 import { getEpisodeById, getEpisodesBySeriesId, SERIES_LIST } from '@/lib/episodes'
 import { createBrowserSupabase } from '@/lib/supabase'
 import JpReading from '@/components/ui/JpReading'
@@ -23,7 +23,7 @@ function SpeakBtn({ text }: { text: string }) {
       className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60"
       style={{ backgroundColor: 'var(--color-tag-bg)' }}
     >
-      <Volume1 size={12} color="var(--text-secondary)" />
+      <Volume2 size={12} color="var(--text-secondary)" />
     </button>
   )
 }
@@ -56,6 +56,7 @@ export default function EpisodePage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
+    // 읽음 처리
     try {
       const raw = localStorage.getItem('read_episodes')
       const arr: string[] = raw ? JSON.parse(raw) : []
@@ -64,6 +65,19 @@ export default function EpisodePage() {
         localStorage.setItem('read_episodes', JSON.stringify(arr))
       }
     } catch {}
+
+    // 이미 저장한 에피소드인지 확인
+    const supabase = createBrowserSupabase()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      const { count } = await supabase
+        .from('cards')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('card_type', 'episode')
+        .eq('payload->>episode_id', id)
+      if (count && count > 0) setSaved(true)
+    })
   }, [id])
 
   if (!episode) {
@@ -108,7 +122,7 @@ export default function EpisodePage() {
     <div className="flex flex-col h-full">
       {/* 헤더 */}
       <div
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] z-10 flex items-center px-4 h-[56px]"
+        className="fixed top-0 inset-x-0 z-10 flex items-center px-4 h-[56px]"
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <button onClick={() => router.back()} className="text-white mr-3 active:opacity-60">
@@ -123,7 +137,7 @@ export default function EpisodePage() {
       </div>
 
       {/* 스크롤 본문 */}
-      <div className="flex-1 overflow-y-auto px-5 pb-[100px]" style={{ paddingTop: '72px' }}>
+      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-[128px]">
         {/* 오늘의 장면 */}
         <div
           className="rounded-2xl px-4 py-4"
@@ -163,7 +177,7 @@ export default function EpisodePage() {
         <div className="mt-5">
           <div
             className="rounded-2xl px-4 py-4 flex flex-col gap-3"
-            style={{ backgroundColor: '#fef6ec', border: '1px solid #f5d4a3' }}
+            style={{ backgroundColor: 'var(--color-cultural-bg)', border: '1px solid var(--color-cultural-border)' }}
           >
             <div>
               <p className="text-caption font-medium mb-2" style={{ color: 'var(--color-cultural)' }}>
@@ -249,7 +263,7 @@ export default function EpisodePage() {
 
       {/* 하단 고정 액션 */}
       <div
-        className="fixed bottom-[80px] left-1/2 -translate-x-1/2 w-full max-w-[390px] px-5 py-3 flex gap-2"
+        className="fixed bottom-[84px] inset-x-0 px-5 py-3 flex gap-2"
         style={{ backgroundColor: 'var(--color-bg)', borderTop: '1px solid var(--color-hairline)' }}
       >
         <button
@@ -257,9 +271,9 @@ export default function EpisodePage() {
           disabled={saved || saving}
           className="flex-1 py-3 rounded-xl text-body font-medium active:opacity-70 disabled:opacity-50"
           style={{
-            backgroundColor: saved ? '#e8f5e9' : 'var(--color-surface)',
-            border: '1px solid var(--color-hairline)',
-            color: saved ? '#2e7d32' : 'var(--text-secondary)',
+            backgroundColor: saved ? 'var(--color-success-bg)' : 'var(--color-surface)',
+            border: `1px solid ${saved ? 'var(--color-success-border)' : 'var(--color-hairline)'}`,
+            color: saved ? 'var(--color-success-text)' : 'var(--text-secondary)',
           }}
         >
           {saving ? '저장 중…' : saved ? '✓ 카드 저장됨' : `카드 저장 (${episode.expressions.length}장)`}

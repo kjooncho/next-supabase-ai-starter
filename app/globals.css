@@ -10,8 +10,15 @@
   /* Semantic */
   --color-success: #6b8f71;
   --color-cultural: #f5a623;
+  --color-cultural-bg: #fef6ec;
+  --color-cultural-border: #f5d4a3;
   --color-mnemonic: #9b59b6;
+  --color-mnemonic-bg: #f0e9f4;
+  --color-mnemonic-border: #d8bfe8;
   --color-real-use: #27ae60;
+  --color-success-bg: #e8f5e9;
+  --color-success-border: #c8e6c9;
+  --color-success-text: #2e7d32;
   --color-error: #e74c3c;
 
   /* Text */
@@ -48,16 +55,22 @@
   --color-foreground: var(--text-primary);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--text-primary);
   font-family: 'Noto Sans KR', sans-serif;
   -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-x: hidden;
 }
 
 /* 타이포그래피 유틸리티 */
-.text-h1 { font-size: 24px; font-weight: 700; }
-.text-h2 { font-size: 20px; font-weight: 600; }
+.text-h1 { font-size: 24px; font-weight: 700; line-height: 1.3; }
+.text-h2 { font-size: 20px; font-weight: 600; line-height: 1.35; }
 .text-body-md { font-size: 16px; font-weight: 500; }
 .text-body { font-size: 14px; font-weight: 400; }
 .text-caption { font-size: 13px; font-weight: 400; }
@@ -68,3 +81,6 @@ body {
 /* 스크롤바 숨김 (필터 탭 등) */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* 탭바 활성 아이콘 fill */
+.tab-icon-active svg * { fill: currentColor; stroke: none; }

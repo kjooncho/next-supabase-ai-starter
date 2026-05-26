@@ -19,6 +19,15 @@ function sseChunk(data: object): Uint8Array {
   return new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`)
 }
 
+const SSE_PING = new TextEncoder().encode(': ping\n\n')
+
+function startKeepalive(controller: ReadableStreamDefaultController, intervalMs = 5000) {
+  const timer = setInterval(() => {
+    try { controller.enqueue(SSE_PING) } catch {}
+  }, intervalMs)
+  return () => clearInterval(timer)
+}
+
 export async function POST(req: Request) {
   const { input_kr } = await req.json().catch(() => ({}))
 
@@ -66,6 +75,7 @@ export async function POST(req: Request) {
         // ── STEP 0: 문화 교정 ─────────────────────────────────
         send({ step: 0, type: 'start' })
 
+        let stopKeepalive = startKeepalive(controller)
         const correctionRes = await ai.messages.create({
           model: MODEL,
           max_tokens: 512,
@@ -80,6 +90,7 @@ export async function POST(req: Request) {
           tool_choice: { type: 'any' },
           messages: [{ role: 'user', content: input_kr }],
         })
+        stopKeepalive()
 
         let correctionResult = { needs_correction: false, correction_items: [] as object[] }
         for (const block of correctionRes.content) {
@@ -93,6 +104,7 @@ export async function POST(req: Request) {
         // ── STEP 1-5: 번역 파이프라인 ────────────────────────
         send({ step: 1, type: 'start' })
 
+        stopKeepalive = startKeepalive(controller)
         const translationRes = await ai.messages.create({
           model: MODEL,
           max_tokens: 2048,
@@ -107,6 +119,7 @@ export async function POST(req: Request) {
             { role: 'user', content: makeTranslationPrompt(input_kr) },
           ],
         })
+        stopKeepalive()
 
         const rawText = translationRes.content.find((b) => b.type === 'text')?.text ?? '{}'
 

@@ -19,7 +19,7 @@ export default function LifePage() {
   return (
     <div className="flex flex-col h-full">
       <header
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center px-4 z-10"
+        className="fixed top-0 inset-x-0 h-[56px] flex items-center px-4 z-10"
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <span className="text-white text-h2 font-bold">생활 일본어</span>
@@ -113,8 +113,8 @@ export default function LifePage() {
 
                   {/* 완주 후 채팅 유도 */}
                   {progressPct === 100 && (
-                    <div className="px-4 py-3" style={{ backgroundColor: '#fef6ec', borderTop: '1px solid #fde8c8' }}>
-                      <p className="text-caption font-medium mb-2" style={{ color: '#e67e22' }}>
+                    <div className="px-4 py-3" style={{ backgroundColor: 'var(--color-cultural-bg)', borderTop: '1px solid var(--color-cultural-border)' }}>
+                      <p className="text-caption font-medium mb-2" style={{ color: 'var(--color-cultural)' }}>
                         🎉 이 에피소드 표현을 써봤나요?
                       </p>
                       <button

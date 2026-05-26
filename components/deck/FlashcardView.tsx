@@ -47,6 +47,7 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
   }
 
   const isEpisode = card.card_type === 'episode'
+  const isImageCard = !isEpisode && (card.payload as SentencePayload).mode === 'image'
 
   // Episode card content
   let mainJp = ''
@@ -65,9 +66,15 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
     contextLabel = p.title_kr
   } else {
     const payload = card.payload as SentencePayload
-    mainJp = payload.step2_versions?.[payload.recommended_version] ?? ''
-    reading = payload.step5_etymology?.reading ?? ''
-    contextLabel = payload.korean_input
+    if (isImageCard) {
+      // 이미지 카드: 앞면 = Japanese 원문, 뒷면 컨텍스트 = Korean 뜻
+      mainJp = payload.korean_input
+      contextLabel = payload.step2_versions?.casual ?? ''
+    } else {
+      mainJp = payload.step2_versions?.[payload.recommended_version] ?? ''
+      reading = payload.step5_etymology?.reading ?? ''
+      contextLabel = payload.korean_input
+    }
   }
 
   return (
@@ -103,11 +110,16 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
           style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}
         >
           {isEpisode && (
-            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f0e9f4', color: 'var(--color-mnemonic)' }}>
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-mnemonic-bg)', color: 'var(--color-mnemonic)' }}>
               생활 표현
             </span>
           )}
-          {!isEpisode && (
+          {isImageCard && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-cultural-bg)', color: 'var(--color-cultural)' }}>
+              📷 이미지
+            </span>
+          )}
+          {!isEpisode && !isImageCard && (
             <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}>
               {(card.payload as SentencePayload).recommended_version === 'casual' ? '구어체' : (card.payload as SentencePayload).recommended_version === 'polite' ? '정중체' : '격식체'}
             </span>
@@ -116,13 +128,15 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
           {/* 메인 번역 */}
           <div className="flex items-center gap-3">
             <p className="font-jp text-[32px] font-bold text-center text-[var(--text-primary)]">{mainJp}</p>
-            <button
-              onClick={() => speak(mainJp)}
-              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60"
-              style={{ backgroundColor: 'var(--color-tag-bg)' }}
-            >
-              <Volume2 size={16} color="var(--text-secondary)" />
-            </button>
+            {(isEpisode || !isImageCard) && (
+              <button
+                onClick={() => speak(mainJp)}
+                className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 active:opacity-60"
+                style={{ backgroundColor: 'var(--color-tag-bg)' }}
+              >
+                <Volume2 size={16} color="var(--text-secondary)" />
+              </button>
+            )}
           </div>
 
           {/* 요미가나 + 한국어 발음 */}
@@ -146,12 +160,21 @@ export default function FlashcardView({ cards, initialIndex = 0, onClose, onUpda
             <>
               {p.step1_structure?.length > 0 && (
                 <div>
-                  <p className="text-caption text-[var(--color-accent)] font-medium mb-1.5">구조</p>
+                  <p className="text-caption text-[var(--color-accent)] font-medium mb-1.5">{isImageCard ? '구조 분석' : '구조'}</p>
                   <div className="flex flex-wrap gap-2">
                     {p.step1_structure.map((item, i) => (
                       <div key={i} className="rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}>
-                        <p className="text-[10px] text-[var(--text-tertiary)]">{item.korean}</p>
-                        <p className="font-jp text-caption font-medium">{item.japanese}</p>
+                        {isImageCard ? (
+                          <>
+                            <p className="font-jp text-caption font-medium">{item.japanese}</p>
+                            <p className="text-[10px] text-[var(--text-tertiary)]">{item.korean}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-[10px] text-[var(--text-tertiary)]">{item.korean}</p>
+                            <p className="font-jp text-caption font-medium">{item.japanese}</p>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>

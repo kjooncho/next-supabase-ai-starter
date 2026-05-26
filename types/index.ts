@@ -40,6 +40,7 @@ export interface RealUseRecord {
 }
 
 export interface SentencePayload {
+  mode?: 'image'
   korean_input: string
   real_use_records?: RealUseRecord[]
   step0_cultural: {

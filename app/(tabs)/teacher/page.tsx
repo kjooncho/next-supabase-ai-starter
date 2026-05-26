@@ -110,7 +110,7 @@ function QuestionSession({ q, qIndex, total, masteryProgress, onUnderstood, onNe
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 pb-4" style={{ paddingTop: '72px' }}>
+    <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[152px]">
       {/* 오늘의 주제 카드 */}
       <div className="rounded-2xl px-4 py-4 mb-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-hairline)' }}>
         <p className="text-[11px] text-[var(--text-tertiary)] mb-1">오늘 주제:</p>
@@ -127,7 +127,7 @@ function QuestionSession({ q, qIndex, total, masteryProgress, onUnderstood, onNe
       {/* 하루 + 대화 */}
       <div className="flex items-start gap-3 mb-3">
         <div className="flex flex-col items-center gap-1 flex-shrink-0">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2" style={{ backgroundColor: '#f0e9f4', borderColor: 'var(--color-mnemonic)' }}>
+          <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2" style={{ backgroundColor: 'var(--color-mnemonic-bg)', borderColor: 'var(--color-mnemonic)' }}>
             🧑‍🎓
           </div>
           <span className="text-[9px] text-[var(--text-tertiary)] font-medium">하루(Haru)</span>
@@ -157,9 +157,9 @@ function QuestionSession({ q, qIndex, total, masteryProgress, onUnderstood, onNe
       </div>
 
       {understood && (
-        <div className="rounded-xl px-4 py-3 mb-3 flex items-center gap-2" style={{ backgroundColor: '#e8f5e9', border: '1px solid #c8e6c9' }}>
+        <div className="rounded-xl px-4 py-3 mb-3 flex items-center gap-2" style={{ backgroundColor: 'var(--color-success-bg)', border: '1px solid var(--color-success-border)' }}>
           <span className="text-lg">✅</span>
-          <p className="text-caption font-medium" style={{ color: '#2e7d32' }}>하루가 이해했어요! 다음 질문으로 넘어가세요</p>
+          <p className="text-caption font-medium" style={{ color: 'var(--color-success-text)' }}>하루가 이해했어요! 다음 질문으로 넘어가세요</p>
         </div>
       )}
 
@@ -197,7 +197,7 @@ function QuestionSession({ q, qIndex, total, masteryProgress, onUnderstood, onNe
       </div>
 
       {/* 하단 입력 */}
-      <div className="fixed bottom-[80px] left-1/2 -translate-x-1/2 w-full max-w-[390px] px-4 py-3" style={{ backgroundColor: 'var(--color-bg)', borderTop: '1px solid var(--color-hairline)' }}>
+      <div className="fixed bottom-[84px] inset-x-0 px-4 py-3" style={{ backgroundColor: 'var(--color-bg)', borderTop: '1px solid var(--color-hairline)' }}>
         {understood ? (
           <button onClick={onNext} className="w-full py-3 rounded-xl text-body font-medium text-white active:opacity-70" style={{ backgroundColor: 'var(--color-primary)' }}>
             {qIndex + 1 >= total ? '수업 완료 🎉' : '다음 질문 →'}
@@ -342,7 +342,7 @@ export default function TeacherPage() {
   return (
     <div className="flex flex-col h-full">
       {/* 헤더 */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] z-10" style={{ backgroundColor: 'var(--color-primary)' }}>
+      <div className="fixed top-0 inset-x-0 z-10" style={{ backgroundColor: 'var(--color-primary)' }}>
         <div className="flex items-center px-4 h-[56px] gap-3">
           <button onClick={() => router.back()} className="text-white active:opacity-60">
             <ChevronLeft size={24} color="#fff" />

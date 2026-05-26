@@ -52,6 +52,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
     return () => { document.body.style.overflow = '' }
   }, [])
 
+  const isImageMode = data.mode === 'image'
   const rec = data.recommended_version as keyof typeof data.step2_versions
   const hasCorrectionItems = data.step0_cultural.needs_correction && data.step0_cultural.correction_items.length > 0
 
@@ -134,10 +135,10 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
               <StepHeader step={0} label="문화 표현 교정" color="var(--color-cultural)" />
               <div
                 className="rounded-xl px-4 py-3"
-                style={{ backgroundColor: '#fef6ec', border: '1px solid #f5d4a3' }}
+                style={{ backgroundColor: 'var(--color-cultural-bg)', border: '1px solid var(--color-cultural-border)' }}
               >
                 {data.step0_cultural.correction_items.map((item, i) => (
-                  <div key={i} className={i > 0 ? 'mt-3 pt-3 border-t border-[#f5d4a3]' : ''}>
+                  <div key={i} className={i > 0 ? 'mt-3 pt-3 border-t border-[var(--color-cultural-border)]' : ''}>
                     <p className="text-body font-medium">&ldquo;{item.detected}&rdquo;</p>
                     <p className="text-caption text-[var(--text-secondary)] mt-0.5">{item.issue}</p>
                   </div>
@@ -149,7 +150,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
           {/* STEP 1: 문장 구조 */}
           {data.step1_structure?.length > 0 && (
             <section>
-              <StepHeader step={1} label="문장 구조" color="var(--color-accent)" />
+              <StepHeader step={1} label={isImageMode ? '구조 분석' : '문장 구조'} color="var(--color-accent)" />
               <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-hairline)' }}>
                 {data.step1_structure.map((item, i) => (
                   <div
@@ -160,29 +161,47 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
                       borderBottom: i < data.step1_structure.length - 1 ? '1px solid var(--color-hairline)' : undefined,
                     }}
                   >
-                    <span className="flex-1 text-caption text-[var(--text-secondary)]">{item.korean}</span>
-                    <span className="text-caption text-[var(--text-tertiary)] mx-3">→</span>
-                    <div className="flex-1 text-right">
-                      <p className="text-body font-jp">{item.japanese}</p>
-                      {item.reading && (
-                        <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">{item.reading}</p>
-                      )}
-                      {item.pronunciation && (
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-accent)' }}>{item.pronunciation}</p>
-                      )}
-                    </div>
+                    {isImageMode ? (
+                      <>
+                        <div className="flex-1">
+                          <p className="text-body font-jp">{item.japanese}</p>
+                          {item.reading && (
+                            <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">{item.reading}</p>
+                          )}
+                          {item.pronunciation && (
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-accent)' }}>{item.pronunciation}</p>
+                          )}
+                        </div>
+                        <span className="text-caption text-[var(--text-tertiary)] mx-3">→</span>
+                        <span className="flex-1 text-caption text-[var(--text-secondary)] text-right">{item.korean}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex-1 text-caption text-[var(--text-secondary)]">{item.korean}</span>
+                        <span className="text-caption text-[var(--text-tertiary)] mx-3">→</span>
+                        <div className="flex-1 text-right">
+                          <p className="text-body font-jp">{item.japanese}</p>
+                          {item.reading && (
+                            <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">{item.reading}</p>
+                          )}
+                          {item.pronunciation && (
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-accent)' }}>{item.pronunciation}</p>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
             </section>
           )}
 
-          {/* STEP 2: 번역 버전 */}
+          {/* STEP 2: 번역 버전 / 이미지 모드 한국어 번역 */}
           {data.step2_versions && (
             <section>
-              <StepHeader step={2} label="번역 버전" color="var(--color-accent)" />
+              <StepHeader step={2} label={isImageMode ? '한국어 번역' : '번역 버전'} color="var(--color-accent)" />
               <div className="flex flex-col gap-2">
-                {(['casual', 'polite', 'formal'] as const).map((key) => {
+                {(isImageMode ? ['casual'] as const : ['casual', 'polite', 'formal'] as const).map((key) => {
                   const val = data.step2_versions[key]
                   if (!val) return null
                   const isRec = key === rec
@@ -197,22 +216,24 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
                         border: '1px solid var(--color-hairline)',
                       }}
                     >
-                      <p
-                        className="text-caption mb-1"
-                        style={{ color: isRec ? 'rgba(255,255,255,0.65)' : 'var(--text-tertiary)' }}
-                      >
-                        {VERSION_LABEL[key]}{isRec ? ' (추천)' : ''}
-                      </p>
+                      {!isImageMode && (
+                        <p
+                          className="text-caption mb-1"
+                          style={{ color: isRec ? 'rgba(255,255,255,0.65)' : 'var(--text-tertiary)' }}
+                        >
+                          {VERSION_LABEL[key]}{isRec ? ' (추천)' : ''}
+                        </p>
+                      )}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <p
-                            className="font-jp text-body-md"
+                            className={`${isImageMode ? '' : 'font-jp'} text-body-md`}
                             style={{ color: isRec ? '#fff' : 'var(--text-primary)' }}
                           >
                             {val}
                           </p>
                           {reading && (
-                            <p className="text-[11px] mt-1 leading-relaxed" style={{ color: isRec ? 'rgba(255,255,255,0.55)' : 'var(--text-tertiary)' }}>
+                            <p className="text-[11px] mt-1 leading-relaxed font-jp" style={{ color: isRec ? 'rgba(255,255,255,0.55)' : 'var(--text-tertiary)' }}>
                               {reading}
                             </p>
                           )}
@@ -222,13 +243,15 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
                             </p>
                           )}
                         </div>
-                        <button
-                          onClick={() => speak(val)}
-                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center active:opacity-60 mt-0.5"
-                          style={{ backgroundColor: isRec ? 'rgba(255,255,255,0.18)' : 'var(--color-tag-bg)' }}
-                        >
-                          <Volume2 size={14} color={isRec ? '#fff' : 'var(--text-secondary)'} />
-                        </button>
+                        {!isImageMode && (
+                          <button
+                            onClick={() => speak(val)}
+                            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center active:opacity-60 mt-0.5"
+                            style={{ backgroundColor: isRec ? 'rgba(255,255,255,0.18)' : 'var(--color-tag-bg)' }}
+                          >
+                            <Volume2 size={14} color={isRec ? '#fff' : 'var(--text-secondary)'} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   )
@@ -269,7 +292,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
               <StepHeader step={4} label="문화 맥락" color="var(--color-cultural)" />
               <div
                 className="rounded-xl px-4 py-3"
-                style={{ backgroundColor: '#fef6ec', border: '1px solid #f5d4a3' }}
+                style={{ backgroundColor: 'var(--color-cultural-bg)', border: '1px solid var(--color-cultural-border)' }}
               >
                 <p className="text-caption text-[var(--text-secondary)] leading-relaxed">{data.step4_culture}</p>
               </div>
@@ -282,7 +305,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
               <StepHeader step={5} label="어원 이야기" color="var(--color-mnemonic)" />
               <div
                 className="rounded-xl px-4 py-3"
-                style={{ backgroundColor: '#f0e9f4', border: '1px solid #ddd0e8' }}
+                style={{ backgroundColor: 'var(--color-mnemonic-bg)', border: '1px solid var(--color-mnemonic-border)' }}
               >
                 <div className="flex items-start gap-3">
                   <p className="font-jp text-[32px] font-bold leading-none" style={{ color: 'var(--color-mnemonic)' }}>
@@ -316,12 +339,12 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
             <button
               onClick={() => { onClose(); router.push('/deck') }}
               className="rounded-2xl px-4 py-3 flex items-center justify-between w-full active:opacity-70"
-              style={{ backgroundColor: '#e8f5e9', border: '1px solid #c8e6c9' }}
+              style={{ backgroundColor: 'var(--color-success-bg)', border: '1px solid var(--color-success-border)' }}
             >
-              <p className="text-caption font-medium" style={{ color: '#2e7d32' }}>
+              <p className="text-caption font-medium" style={{ color: 'var(--color-success-text)' }}>
                 💾 My Deck에 저장됐어요
               </p>
-              <span className="text-caption font-medium" style={{ color: '#2e7d32' }}>내 덱 보기 →</span>
+              <span className="text-caption font-medium" style={{ color: 'var(--color-success-text)' }}>내 덱 보기 →</span>
             </button>
           ) : (
             <div

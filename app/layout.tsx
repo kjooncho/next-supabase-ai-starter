@@ -41,7 +41,7 @@ export default function RootLayout({
       className={`${notoSansKR.variable} ${notoSerifJP.variable} h-full`}
     >
       <body className="h-full bg-[var(--color-bg)]">
-        <div className="mx-auto max-w-[390px] h-full relative">
+        <div className="w-full h-full relative overflow-x-hidden">
           {children}
         </div>
       </body>

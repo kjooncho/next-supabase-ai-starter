@@ -254,14 +254,14 @@ function KanjiDetailSheet({
           </section>
 
           {/* 비주얼 힌트 */}
-          <section className="rounded-xl px-4 py-3" style={{ backgroundColor: '#fef6ec', border: '1px solid #fde8c8' }}>
-            <p className="text-caption font-medium mb-1.5" style={{ color: '#e67e22' }}>👁 시각적 힌트</p>
+          <section className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--color-cultural-bg)', border: '1px solid var(--color-cultural-border)' }}>
+            <p className="text-caption font-medium mb-1.5" style={{ color: 'var(--color-cultural)' }}>👁 시각적 힌트</p>
             <p className="text-caption text-[var(--text-secondary)] leading-relaxed">{entry.visual_hint}</p>
           </section>
 
           {/* 니모닉 */}
-          <section className="rounded-xl px-4 py-3" style={{ backgroundColor: '#f0e9f4', border: '1px solid #d8bfe8' }}>
-            <p className="text-caption font-medium mb-1.5" style={{ color: '#8e44ad' }}>💡 암기 팁</p>
+          <section className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--color-mnemonic-bg)', border: '1px solid var(--color-mnemonic-border)' }}>
+            <p className="text-caption font-medium mb-1.5" style={{ color: 'var(--color-mnemonic)' }}>💡 암기 팁</p>
             <p className="text-caption text-[var(--text-secondary)] leading-relaxed">{entry.mnemonic}</p>
           </section>
 
@@ -471,7 +471,7 @@ export default function KanjiPage() {
   return (
     <div className="flex flex-col h-full">
       <header
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center justify-between px-4 z-10"
+        className="fixed top-0 inset-x-0 h-[56px] flex items-center justify-between px-4 z-10"
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <span className="text-white text-h2 font-bold font-jp">漢字</span>
@@ -499,7 +499,7 @@ export default function KanjiPage() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {/* 진행률 바 */}
-        <div className="fixed top-[56px] left-1/2 -translate-x-1/2 w-full max-w-[390px] h-1 z-10" style={{ backgroundColor: 'var(--color-hairline)' }}>
+        <div className="fixed top-[56px] inset-x-0 h-1 z-10" style={{ backgroundColor: 'var(--color-hairline)' }}>
           <div
             className="h-full transition-all duration-500"
             style={{
@@ -515,26 +515,29 @@ export default function KanjiPage() {
         />
 
         {/* 카테고리 필터 */}
-        <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
-          {([{ key: 'all', label: '전체', color: 'var(--color-primary)' }, ...KANJI_CATEGORIES.map((c) => ({ key: c, label: c, color: CATEGORY_COLORS[c] }))] as const).map(({ key, label, color }) => {
-            const isActive = activeCategory === key
-            const count = key === 'all' ? KANJI_LIST.length : KANJI_LIST.filter((k) => k.category === key).length
-            return (
-              <button
-                key={key}
-                onClick={() => setActiveCategory(key as KanjiCategory | 'all')}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium active:opacity-70"
-                style={{
-                  backgroundColor: isActive ? color : 'var(--color-surface)',
-                  color: isActive ? '#fff' : 'var(--text-secondary)',
-                  border: `1px solid ${isActive ? color : 'var(--color-hairline)'}`,
-                }}
-              >
-                {label}
-                <span className="text-[10px] opacity-80">({count})</span>
-              </button>
-            )
-          })}
+        <div className="-mx-4 overflow-x-auto no-scrollbar mb-4">
+          <div className="flex gap-2 px-4 pb-0.5">
+            {([{ key: 'all', label: '전체', color: 'var(--color-primary)' }, ...KANJI_CATEGORIES.map((c) => ({ key: c, label: c, color: CATEGORY_COLORS[c] }))] as const).map(({ key, label, color }) => {
+              const isActive = activeCategory === key
+              const count = key === 'all' ? KANJI_LIST.length : KANJI_LIST.filter((k) => k.category === key).length
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveCategory(key as KanjiCategory | 'all')}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium active:opacity-70"
+                  style={{
+                    backgroundColor: isActive ? color : 'var(--color-surface)',
+                    color: isActive ? '#fff' : 'var(--text-secondary)',
+                    border: `1px solid ${isActive ? color : 'var(--color-hairline)'}`,
+                  }}
+                >
+                  {label}
+                  <span className="text-[10px] opacity-80">({count})</span>
+                </button>
+              )
+            })}
+            <div className="w-4 flex-shrink-0" />
+          </div>
         </div>
 
         <KanjiGrid

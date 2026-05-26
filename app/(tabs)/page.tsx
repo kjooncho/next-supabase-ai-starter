@@ -265,6 +265,7 @@ export default function ChatPage() {
           {messages.length > 1 && (
             <button
               onClick={() => {
+                if (!confirm('대화 기록을 모두 삭제할까요?')) return
                 sessionStorage.removeItem('chat_messages')
                 clearChatMessages()
               }}

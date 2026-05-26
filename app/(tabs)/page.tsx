@@ -360,7 +360,21 @@ export default function ChatPage() {
                     </div>
                   )}
                   <div className="px-3 pb-1">
-                    <p className="text-[10px] text-[var(--text-tertiary)]">{verLabel}{isImageMode ? '' : ' (추천)'}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] text-[var(--text-tertiary)]">{verLabel}{isImageMode ? '' : ' (추천)'}</p>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(rec)
+                          const el = document.getElementById(`copy-${msg.id}`)
+                          if (el) { el.textContent = '✓'; setTimeout(() => { if (el) el.textContent = '복사' }, 1500) }
+                        }}
+                        id={`copy-${msg.id}`}
+                        className="text-[10px] px-2 py-0.5 rounded-full active:opacity-60"
+                        style={{ color: 'var(--color-accent)', border: '1px solid var(--color-accent)' }}
+                      >
+                        복사
+                      </button>
+                    </div>
                     <p className={`${isImageMode ? 'text-body-md' : 'font-jp text-body-md'} font-medium text-[var(--text-primary)]`}>{rec}</p>
                     {msg.data.step2_readings?.[msg.data.recommended_version as keyof typeof msg.data.step2_versions] && (
                       <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5 leading-relaxed">

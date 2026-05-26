@@ -60,7 +60,7 @@ export default function InputBar({
   }
 
   const remaining = maxLength - value.length
-  const isNearLimit = remaining <= 50
+  const isNearLimit = remaining <= 100
 
   return (
     <form

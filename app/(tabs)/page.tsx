@@ -1,123 +1,15 @@
 'use client'
 
-import { useReducer, useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import ChatBubble from '@/components/chat/ChatBubble'
 import InputBar from '@/components/chat/InputBar'
 import StepIndicator from '@/components/chat/StepIndicator'
-import TranslationResult, { TranslationResultData } from '@/components/chat/TranslationResult'
+import TranslationResult from '@/components/chat/TranslationResult'
+import DarumaAvatar from '@/components/ui/DarumaAvatar'
 import { createBrowserSupabase } from '@/lib/supabase'
-import type { User } from '@supabase/supabase-js'
-import { ChatRole, CorrectionItem } from '@/types'
-
-type Message =
-  | { id: string; kind: 'bubble'; role: ChatRole; text: string }
-  | { id: string; kind: 'correction'; items: CorrectionItem[] }
-  | { id: string; kind: 'loading'; mode?: 'image' }
-  | { id: string; kind: 'image-upload'; dataUrl: string }
-  | { id: string; kind: 'translation-result'; data: TranslationResultData }
-
-type State = {
-  messages: Message[]
-  isLoading: boolean
-  currentStep: number
-  pendingCorrection: { needs_correction: boolean; correction_items: CorrectionItem[] } | null
-}
-
-type Action =
-  | { type: 'SUBMIT'; text: string }
-  | { type: 'IMAGE_SUBMIT'; dataUrl: string }
-  | { type: 'SET_STEP'; step: number }
-  | { type: 'SET_CORRECTION'; data: { needs_correction: boolean; correction_items: CorrectionItem[] } }
-  | { type: 'DONE'; data: TranslationResultData }
-  | { type: 'ERROR'; message: string }
-  | { type: 'RESTORE'; messages: Message[] }
-
-const LOADING_ID = '__loading__'
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'SUBMIT':
-      return {
-        ...state,
-        messages: [
-          ...state.messages,
-          { id: crypto.randomUUID(), kind: 'bubble', role: 'user', text: action.text },
-          { id: LOADING_ID, kind: 'loading' },
-        ],
-        isLoading: true,
-        currentStep: 0,
-        pendingCorrection: null,
-      }
-
-    case 'IMAGE_SUBMIT':
-      return {
-        ...state,
-        messages: [
-          ...state.messages,
-          { id: crypto.randomUUID(), kind: 'image-upload', dataUrl: action.dataUrl },
-          { id: LOADING_ID, kind: 'loading', mode: 'image' },
-        ],
-        isLoading: true,
-        currentStep: 0,
-        pendingCorrection: null,
-      }
-
-    case 'SET_STEP':
-      return { ...state, currentStep: action.step }
-
-    case 'SET_CORRECTION': {
-      const next = { ...state, pendingCorrection: action.data }
-      if (!action.data.needs_correction || action.data.correction_items.length === 0) return next
-      const withoutLoading = state.messages.filter((m) => m.id !== LOADING_ID)
-      return {
-        ...next,
-        messages: [
-          ...withoutLoading,
-          { id: crypto.randomUUID(), kind: 'correction', items: action.data.correction_items },
-          { id: LOADING_ID, kind: 'loading' },
-        ],
-      }
-    }
-
-    case 'DONE':
-      return {
-        ...state,
-        isLoading: false,
-        currentStep: -1,
-        pendingCorrection: null,
-        messages: [
-          ...state.messages.filter((m) => m.id !== LOADING_ID),
-          { id: crypto.randomUUID(), kind: 'translation-result', data: action.data },
-        ],
-      }
-
-    case 'ERROR':
-      return {
-        ...state,
-        isLoading: false,
-        currentStep: -1,
-        messages: [
-          ...state.messages.filter((m) => m.id !== LOADING_ID),
-          { id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: `오류: ${action.message}` },
-        ],
-      }
-
-    case 'RESTORE':
-      return { ...state, messages: action.messages }
-
-    default:
-      return state
-  }
-}
-
-const GREETING: Message = {
-  id: 'greeting',
-  kind: 'bubble',
-  role: 'ai-nichi',
-  text: '안녕하세요! 일본어로 하고 싶은 말을 한국어로 적어보세요.\n문화적으로 자연스러운 표현으로 도와드릴게요 😊',
-}
+import { useAuthStore, useChatStore, type TranslationResultData, type Message } from '@/lib/store'
 
 const EXAMPLE_CHIPS = [
   '오늘 정말 수고했어요',
@@ -126,48 +18,66 @@ const EXAMPLE_CHIPS = [
 ]
 
 export default function ChatPage() {
-  const [state, dispatch] = useReducer(reducer, {
-    messages: [GREETING],
-    isLoading: false,
-    currentStep: -1,
-    pendingCorrection: null,
-  })
-  const [user, setUser] = useState<User | null>(null)
-  const [resultModal, setResultModal] = useState<TranslationResultData | null>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Restore chat history from sessionStorage on mount (client-only, runs after hydration)
-  useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem('chat_messages')
-      if (saved) {
-        const messages = JSON.parse(saved) as Message[]
-        if (messages.length > 0) dispatch({ type: 'RESTORE', messages })
-      }
-    } catch {}
-  }, [])
+  // Zustand stores
+  const user = useAuthStore((s) => s.user)
+  const setUser = useAuthStore((s) => s.setUser)
 
-  // Persist non-loading messages to sessionStorage whenever messages change
-  useEffect(() => {
-    if (state.isLoading) return
-    try {
-      const toSave = state.messages.filter((m) => m.kind !== 'loading')
-      sessionStorage.setItem('chat_messages', JSON.stringify(toSave))
-    } catch {}
-  }, [state.messages, state.isLoading])
+  const messages = useChatStore((s) => s.messages)
+  const isLoading = useChatStore((s) => s.isLoading)
+  const currentStep = useChatStore((s) => s.currentStep)
+  const resultModal = useChatStore((s) => s.resultModal)
 
+  const addMessage = useChatStore((s) => s.addMessage)
+  const removeMessage = useChatStore((s) => s.removeMessage)
+  const updateMessages = useChatStore((s) => s.updateMessages)
+  const setCorrectionData = useChatStore((s) => s.setCorrectionData)
+  const setCurrentStep = useChatStore((s) => s.setCurrentStep)
+  const setLoading = useChatStore((s) => s.setLoading)
+  const setResultModal = useChatStore((s) => s.setResultModal)
+  const clearChatMessages = useChatStore((s) => s.clearMessages)
+
+  // Load initial auth state
   useEffect(() => {
     const supabase = createBrowserSupabase()
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null)
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, [setUser])
 
+  // Restore chat history from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('chat_messages')
+      if (saved) {
+        const restored = JSON.parse(saved) as Message[]
+        if (restored.length > 0) {
+          updateMessages(restored)
+        }
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+  }, [updateMessages])
+
+  // Persist non-loading messages to sessionStorage
+  useEffect(() => {
+    if (isLoading) return
+    try {
+      const toSave = messages.filter((m) => m.kind !== 'loading')
+      sessionStorage.setItem('chat_messages', JSON.stringify(toSave))
+    } catch {
+      // Ignore storage errors
+    }
+  }, [messages, isLoading])
+
+  // Auto-scroll to bottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [state.messages, state.currentStep])
+  }, [messages, currentStep])
 
   const handleSignOut = async () => {
     await createBrowserSupabase().auth.signOut()
@@ -182,7 +92,10 @@ export default function ChatPage() {
       reader.readAsDataURL(file)
     })
 
-    dispatch({ type: 'IMAGE_SUBMIT', dataUrl })
+    addMessage({ id: crypto.randomUUID(), kind: 'image-upload', dataUrl })
+    addMessage({ id: '__loading__', kind: 'loading', mode: 'image' })
+    setLoading(true)
+    setCurrentStep(0)
 
     const base64 = dataUrl.split(',')[1]
     const media_type = file.type || 'image/jpeg'
@@ -197,10 +110,15 @@ export default function ChatPage() {
       if (!res.ok || !res.body) {
         if (res.status === 429) {
           const data = await res.json().catch(() => ({}))
-          dispatch({ type: 'ERROR', message: data.error ?? '오늘 번역 한도(50회)에 도달했어요. 내일 다시 만나요! 😊' })
+          const errorMsg = data.error ?? '오늘 번역 한도(50회)에 도달했어요. 내일 다시 만나요! 😊'
+          removeMessage('__loading__')
+          addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: `오류: ${errorMsg}` })
         } else {
-          dispatch({ type: 'ERROR', message: `잠시 문제가 생겼어요. 조금 뒤에 다시 시도해 주세요. (${res.status})` })
+          const errorMsg = `잠시 문제가 생겼어요. 조금 뒤에 다시 시도해 주세요. (${res.status})`
+          removeMessage('__loading__')
+          addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: `오류: ${errorMsg}` })
         }
+        setLoading(false)
         return
       }
 
@@ -218,10 +136,12 @@ export default function ChatPage() {
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           const json = JSON.parse(line.slice(6))
-          if (json.type === 'start' || json.type === 'complete') dispatch({ type: 'SET_STEP', step: json.step })
+          if (json.type === 'start' || json.type === 'complete') setCurrentStep(json.step)
           if (json.type === 'done') {
-            dispatch({
-              type: 'DONE',
+            removeMessage('__loading__')
+            addMessage({
+              id: crypto.randomUUID(),
+              kind: 'translation-result',
               data: {
                 mode: 'image',
                 input_kr: json.input_kr ?? '',
@@ -234,20 +154,31 @@ export default function ChatPage() {
                 step4_culture: json.step4_culture ?? '',
                 step5_etymology: json.step5_etymology ?? null,
                 recommended_version: json.recommended_version ?? 'casual',
-                card_id: null,
-              },
+                card_id: json.card_id ?? null,
+              } as TranslationResultData,
             })
+            setLoading(false)
+            setCurrentStep(-1)
           }
-          if (json.type === 'error') dispatch({ type: 'ERROR', message: json.message })
+          if (json.type === 'error') {
+            removeMessage('__loading__')
+            addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: `오류: ${json.message}` })
+            setLoading(false)
+          }
         }
       }
     } catch {
-      dispatch({ type: 'ERROR', message: '네트워크 연결을 확인하고 다시 시도해 주세요.' })
+      removeMessage('__loading__')
+      addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: '오류: 네트워크 연결을 확인하고 다시 시도해 주세요.' })
+      setLoading(false)
     }
   }
 
   const handleSubmit = async (text: string) => {
-    dispatch({ type: 'SUBMIT', text })
+    addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'user', text })
+    addMessage({ id: '__loading__', kind: 'loading' })
+    setLoading(true)
+    setCurrentStep(0)
 
     try {
       const res = await fetch('/api/chat', {
@@ -259,10 +190,15 @@ export default function ChatPage() {
       if (!res.ok || !res.body) {
         if (res.status === 429) {
           const data = await res.json().catch(() => ({}))
-          dispatch({ type: 'ERROR', message: data.error ?? '오늘 번역 한도(50회)에 도달했어요. 내일 다시 만나요! 😊' })
+          const errorMsg = data.error ?? '오늘 번역 한도(50회)에 도달했어요. 내일 다시 만나요! 😊'
+          removeMessage('__loading__')
+          addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: `오류: ${errorMsg}` })
         } else {
-          dispatch({ type: 'ERROR', message: `잠시 문제가 생겼어요. 조금 뒤에 다시 시도해 주세요. (${res.status})` })
+          const errorMsg = `잠시 문제가 생겼어요. 조금 뒤에 다시 시도해 주세요. (${res.status})`
+          removeMessage('__loading__')
+          addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: `오류: ${errorMsg}` })
         }
+        setLoading(false)
         return
       }
 
@@ -280,11 +216,13 @@ export default function ChatPage() {
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           const json = JSON.parse(line.slice(6))
-          if (json.type === 'start' || json.type === 'complete') dispatch({ type: 'SET_STEP', step: json.step })
-          if (json.type === 'result' && json.data) dispatch({ type: 'SET_CORRECTION', data: json.data })
+          if (json.type === 'start' || json.type === 'complete') setCurrentStep(json.step)
+          if (json.type === 'result' && json.data) setCorrectionData(json.data)
           if (json.type === 'done') {
-            dispatch({
-              type: 'DONE',
+            removeMessage('__loading__')
+            addMessage({
+              id: crypto.randomUUID(),
+              kind: 'translation-result',
               data: {
                 input_kr: json.input_kr ?? '',
                 step0_cultural: json.step0_cultural ?? { needs_correction: false, correction_items: [] },
@@ -297,31 +235,38 @@ export default function ChatPage() {
                 step5_etymology: json.step5_etymology ?? null,
                 recommended_version: json.recommended_version ?? 'casual',
                 card_id: json.card_id ?? null,
-              },
+              } as TranslationResultData,
             })
+            setLoading(false)
+            setCurrentStep(-1)
           }
-          if (json.type === 'error') dispatch({ type: 'ERROR', message: json.message })
+          if (json.type === 'error') {
+            removeMessage('__loading__')
+            addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: `오류: ${json.message}` })
+            setLoading(false)
+          }
         }
       }
     } catch {
-      dispatch({ type: 'ERROR', message: '네트워크 연결을 확인하고 다시 시도해 주세요.' })
+      removeMessage('__loading__')
+      addMessage({ id: crypto.randomUUID(), kind: 'bubble', role: 'ai-nichi', text: '오류: 네트워크 연결을 확인하고 다시 시도해 주세요.' })
+      setLoading(false)
     }
   }
 
   return (
     <div className="flex flex-col h-full">
-      {/* 헤더 */}
       <header
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] h-[56px] flex items-center justify-between px-4 z-10"
+        className="fixed top-0 inset-x-0 h-[56px] flex items-center justify-between px-4 z-10"
         style={{ backgroundColor: 'var(--color-primary)' }}
       >
         <span className="text-white text-h2 font-bold">毎日</span>
         <div className="flex items-center gap-2">
-          {state.messages.length > 1 && (
+          {messages.length > 1 && (
             <button
               onClick={() => {
                 sessionStorage.removeItem('chat_messages')
-                dispatch({ type: 'RESTORE', messages: [GREETING] })
+                clearChatMessages()
               }}
               className="text-white/50 active:opacity-50 p-1"
               title="채팅 초기화"
@@ -344,10 +289,8 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* 메시지 영역 */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
-        {/* 예시 입력 칩: 인사말만 있을 때 표시 */}
-        {state.messages.length === 1 && !state.isLoading && (
+      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[92px] flex flex-col gap-3">
+        {messages.length === 1 && !isLoading && (
           <div className="flex flex-wrap gap-2 mt-1">
             {EXAMPLE_CHIPS.map((chip) => (
               <button
@@ -362,13 +305,13 @@ export default function ChatPage() {
           </div>
         )}
 
-        {state.messages.map((msg) => {
+        {messages.map((msg) => {
           if (msg.kind === 'correction') {
             return (
               <div
                 key={msg.id}
                 className="rounded-2xl px-4 py-3"
-                style={{ backgroundColor: '#fef6ec', border: '1px solid #f5d4a3' }}
+                style={{ backgroundColor: 'var(--color-cultural-bg)', border: '1px solid var(--color-cultural-border)' }}
               >
                 <p className="text-body font-medium mb-2" style={{ color: 'var(--color-cultural)' }}>
                   💡 문화 표현 교정
@@ -390,17 +333,11 @@ export default function ChatPage() {
               : msg.data.recommended_version === 'casual' ? '구어체' : msg.data.recommended_version === 'polite' ? '정중체' : '격식체'
             return (
               <div key={msg.id} className="flex items-end gap-2">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ backgroundColor: 'var(--color-accent)' }}
-                >
-                  🎎
-                </div>
+                <DarumaAvatar size={36} className="flex-shrink-0" />
                 <div
                   className="flex-1 rounded-2xl rounded-bl-sm overflow-hidden"
                   style={{ backgroundColor: 'var(--bubble-ai)', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
                 >
-                  {/* 스텝 뱃지 */}
                   <div className="flex items-center gap-1 px-3 pt-3 pb-1 flex-wrap">
                     {(isImageMode
                       ? ['구조', '번역', '문법', '문화', '어원']
@@ -415,14 +352,12 @@ export default function ChatPage() {
                       </span>
                     ))}
                   </div>
-                  {/* 이미지 모드: 원본 일본어 표시 */}
                   {isImageMode && (
                     <div className="px-3 pb-1">
                       <p className="text-[10px] text-[var(--text-tertiary)]">원본 일본어</p>
                       <p className="font-jp text-caption font-medium text-[var(--text-secondary)]">{msg.data.input_kr}</p>
                     </div>
                   )}
-                  {/* 추천 번역 */}
                   <div className="px-3 pb-1">
                     <p className="text-[10px] text-[var(--text-tertiary)]">{verLabel}{isImageMode ? '' : ' (추천)'}</p>
                     <p className={`${isImageMode ? 'text-body-md' : 'font-jp text-body-md'} font-medium text-[var(--text-primary)]`}>{rec}</p>
@@ -437,7 +372,6 @@ export default function ChatPage() {
                       </p>
                     )}
                   </div>
-                  {/* 하단 액션 */}
                   {!user && (
                     <div className="px-3 py-2 flex items-center gap-1.5" style={{ borderTop: '1px solid var(--color-hairline)', backgroundColor: '#f8f4ff' }}>
                       <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>로그인하면 카드에 저장됩니다</span>
@@ -464,7 +398,7 @@ export default function ChatPage() {
                         <button
                           onClick={() => router.push('/deck')}
                           className="flex-1 py-2 text-center text-caption font-medium active:opacity-60"
-                          style={{ color: '#2e7d32' }}
+                          style={{ color: 'var(--color-success-text)' }}
                         >
                           💾 내 덱
                         </button>
@@ -493,22 +427,25 @@ export default function ChatPage() {
           if (msg.kind === 'loading') {
             return (
               <div key={msg.id} className="flex items-end gap-2">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ backgroundColor: 'var(--color-accent)' }}
-                >
-                  🎎
-                </div>
+                <DarumaAvatar size={36} className="flex-shrink-0" />
                 <div
                   className="px-4 py-2.5 rounded-2xl rounded-bl-sm"
                   style={{ backgroundColor: 'var(--bubble-ai)', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
                 >
-                  <StepIndicator currentStep={state.currentStep} mode={msg.mode ?? 'text'} />
+                  <StepIndicator currentStep={currentStep} mode={msg.mode ?? 'text'} />
                   <p className="text-caption text-[var(--text-tertiary)] mt-1">
                     {msg.mode === 'image' ? '이미지를 분석하고 있어요' : '번역 결과를 준비하고 있어요'}
                   </p>
                 </div>
               </div>
+            )
+          }
+
+          if (msg.id === 'greeting') {
+            return (
+              <p key={msg.id} className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                {msg.text}
+              </p>
             )
           }
 
@@ -524,12 +461,10 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* 입력창 */}
-      <div className="fixed bottom-[80px] left-1/2 -translate-x-1/2 w-full max-w-[390px]">
-        <InputBar onSubmit={handleSubmit} onImageSelect={handleImageSubmit} disabled={state.isLoading} />
+      <div className="fixed bottom-[84px] inset-x-0">
+        <InputBar onSubmit={handleSubmit} onImageSelect={handleImageSubmit} disabled={isLoading} />
       </div>
 
-      {/* 번역 결과 풀스크린 */}
       {resultModal && (
         <TranslationResult data={resultModal} onClose={() => setResultModal(null)} />
       )}

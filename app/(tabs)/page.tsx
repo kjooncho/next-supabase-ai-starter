@@ -334,7 +334,7 @@ export default function ChatPage() {
               : msg.data.recommended_version === 'casual' ? '구어체' : msg.data.recommended_version === 'polite' ? '정중체' : '격식체'
             return (
               <div key={msg.id} className="flex items-end gap-2">
-                <DarumaAvatar size={36} className="flex-shrink-0" />
+                <DarumaAvatar size={36} expression="done" className="flex-shrink-0" />
                 <div
                   className="flex-1 rounded-2xl rounded-bl-sm overflow-hidden"
                   style={{ backgroundColor: 'var(--bubble-ai)', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
@@ -440,9 +440,10 @@ export default function ChatPage() {
           }
 
           if (msg.kind === 'loading') {
+            const loadingExpression = currentStep === 0 ? 'cultural' : currentStep >= 1 && currentStep <= 4 ? 'thinking' : 'thinking'
             return (
               <div key={msg.id} className="flex items-end gap-2">
-                <DarumaAvatar size={36} className="flex-shrink-0" />
+                <DarumaAvatar size={36} expression={loadingExpression} className="flex-shrink-0" />
                 <div
                   className="px-4 py-2.5 rounded-2xl rounded-bl-sm"
                   style={{ backgroundColor: 'var(--bubble-ai)', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}

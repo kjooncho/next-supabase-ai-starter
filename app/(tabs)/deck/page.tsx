@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Volume2, Search } from 'lucide-react'
+import DarumaAvatar from '@/components/ui/DarumaAvatar'
 import { createBrowserSupabase } from '@/lib/supabase'
 import { Card, SentencePayload, getMasteryStage } from '@/types'
 import CardGrid from '@/components/deck/CardGrid'
@@ -211,11 +212,11 @@ export default function DeckPage() {
           </div>
         ) : cards.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-4">
-            <span className="text-5xl">💬</span>
+            <DarumaAvatar size={64} expression="default" />
             <div>
               <p className="text-h2 font-bold" style={{ color: 'var(--text-primary)' }}>아직 저장된 카드가 없어요</p>
               <p className="text-body mt-2" style={{ color: 'var(--text-secondary)' }}>
-                채팅 탭에서 일본어 표현을 번역하고<br />카드에 저장해보세요
+                채팅 탭에서 일본어 표현을 번역하면<br />자동으로 카드가 쌓여요
               </p>
             </div>
             <button

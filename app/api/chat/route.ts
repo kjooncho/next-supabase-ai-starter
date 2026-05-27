@@ -157,7 +157,7 @@ export async function POST(req: Request) {
                 step3_grammar: translationData.step3_grammar ?? [],
                 step4_culture: translationData.step4_culture ?? '',
                 step5_etymology: translationData.step5_etymology ?? null,
-                recommended_version: translationData.recommended_version ?? 'casual',
+                recommended_version: translationData.recommended_version ?? 'polite',
                 has_mnemonic: !!translationData.step5_etymology,
               },
             })
@@ -187,7 +187,7 @@ export async function POST(req: Request) {
           step3_grammar: translationData.step3_grammar ?? [],
           step4_culture: translationData.step4_culture ?? '',
           step5_etymology: translationData.step5_etymology ?? null,
-          recommended_version: translationData.recommended_version ?? 'casual',
+          recommended_version: translationData.recommended_version ?? 'polite',
           card_id: savedCardId,
         })
       } catch (err) {

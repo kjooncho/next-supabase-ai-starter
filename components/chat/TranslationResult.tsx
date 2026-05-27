@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Volume2 } from 'lucide-react'
 import TeacherModal from '@/components/deck/TeacherModal'
+import DarumaAvatar from '@/components/ui/DarumaAvatar'
 import { Card, CorrectionItem, SentencePayload } from '@/types'
 
 export interface TranslationResultData {
@@ -97,12 +98,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
         {/* 완료 배너 */}
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center gap-2 mb-1">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
-              style={{ backgroundColor: 'var(--color-accent)' }}
-            >
-              🎎
-            </div>
+            <DarumaAvatar size={32} expression="explain" className="flex-shrink-0" />
             <p className="text-body font-medium text-[var(--text-primary)]">AI-Nichi가 번역 완료했어요!</p>
           </div>
 

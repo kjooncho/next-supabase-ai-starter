@@ -94,14 +94,14 @@ export const makeTranslationPrompt = (input_kr: string, correctedInput?: string)
     { "korean": "주어구", "japanese": "対応する日本語", "reading": "たいおうするにほんご", "pronunciation": "타이오-스루 니혼고" }
   ],
   "step2_versions": {
-    "casual": "구어체 번역",
-    "polite": "정중체 번역",
-    "formal": "격식체 번역"
+    "casual": "일본어 구어체 번역 (예: そうですか、分かりました)",
+    "polite": "일본어 정중체 번역 (예: そうですか、分かりました。よろしくお願いします)",
+    "formal": "일본어 격식체 번역 (예: 承知いたしました。何卒よろしくお願い申し上げます)"
   },
   "step2_readings": {
-    "casual": "구어체 전체 요미가나",
-    "polite": "정중체 전체 요미가나",
-    "formal": "격식체 전체 요미가나"
+    "casual": "구어체 히라가나 전체 읽기",
+    "polite": "정중체 히라가나 전체 읽기",
+    "formal": "격식체 히라가나 전체 읽기"
   },
   "step2_pronunciations": {
     "casual": "구어체 한국어 발음",
@@ -118,18 +118,21 @@ export const makeTranslationPrompt = (input_kr: string, correctedInput?: string)
     "story": "어원 스토리 (한국어)",
     "mnemonic": "한국어 기억법"
   },
-  "recommended_version": "casual"
+  "recommended_version": "polite"
 }
 
 규칙:
+- step2_versions: 반드시 일본어로 번역. 한국어 절대 금지. casual=반말·축약형, polite=~です/~ます, formal=~でございます/~いたします
 - step1_structure: 한국어 문장을 2-4개 덩어리로 분해. reading은 히라가나 전체 읽기, pronunciation은 한국어 가타카나 발음 표기
-- step2_versions: 3가지 스타일로 번역 (짧고 실용적으로)
 - step2_readings: 각 버전의 히라가나 전체 읽기 (공백 구분, 문장 단위)
 - step2_pronunciations: 각 버전의 한국어 발음 표기 (공백 구분, 문장 단위)
 - step3_grammar: 핵심 문법 1-2개만
 - step4_culture: 일본인에게 이 표현이 어떻게 들리는지 포함
 - step5_etymology: 가장 핵심적인 한자 1개만
-- recommended_version: casual/polite/formal 중 상황에 맞는 추천`
+- recommended_version: 상황 기준으로 선택
+  · casual: 친한 이웃·친구·동년배에게 하는 일상 대화
+  · polite: 보육원·병원·가게·직장 동료 등 일반적 정중한 상황 (기본값)
+  · formal: 관공서·계약·클레임·상사·거래처 등 공식적·비즈니스 상황`
 }
 
 export const IMAGE_OCR_PROMPT = `이 이미지에 있는 일본어 텍스트를 그대로 추출해주세요.

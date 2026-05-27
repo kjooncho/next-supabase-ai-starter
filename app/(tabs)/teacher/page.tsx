@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, ChevronLeft } from 'lucide-react'
+import DarumaAvatar from '@/components/ui/DarumaAvatar'
 import { TEACHER_QUESTIONS, TeacherQuestion } from '@/lib/teacherQuestions'
 import { createBrowserSupabase } from '@/lib/supabase'
 import { Card, SentencePayload } from '@/types'
@@ -272,7 +273,7 @@ export default function TeacherPage() {
   if (total === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-4">
-        <span className="text-5xl">🎓</span>
+        <DarumaAvatar size={64} expression="explain" />
         <div>
           <p className="text-h2 font-bold" style={{ color: 'var(--text-primary)' }}>복습할 카드가 없어요</p>
           <p className="text-body mt-2" style={{ color: 'var(--text-secondary)' }}>
@@ -311,7 +312,7 @@ export default function TeacherPage() {
   if (done) {
     return (
       <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-6">
-        <span className="text-6xl">🎉</span>
+        <DarumaAvatar size={72} expression="done" />
         <div>
           <p className="text-h2 font-bold text-[var(--text-primary)]">오늘 수업 완료!</p>
           <p className="text-body text-[var(--text-secondary)] mt-2">{total}개 표현을 모두 설명했어요</p>

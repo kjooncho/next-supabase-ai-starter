@@ -221,7 +221,7 @@ export default function TranslationResult({ data, onClose }: TranslationResultPr
                         </p>
                       )}
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p
                             className={`${isImageMode ? '' : 'font-jp'} text-body-md`}
                             style={{ color: isRec ? '#fff' : 'var(--text-primary)' }}

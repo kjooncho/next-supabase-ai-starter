@@ -65,8 +65,15 @@ export default function InputBar({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-2 px-4 py-2 border-t border-[var(--color-hairline)] bg-[var(--color-surface)]"
+      className="border-t border-[var(--color-hairline)] bg-[var(--color-surface)]"
     >
+      {disabled && (
+        <div className="flex items-center gap-1.5 px-4 pt-2 pb-0">
+          <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-accent)' }} />
+          <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>번역 중이에요, 잠시만요…</span>
+        </div>
+      )}
+      <div className="flex items-center gap-2 px-4 py-2">
       {onImageSelect && (
         <>
           <input
@@ -120,6 +127,7 @@ export default function InputBar({
       >
         <SendHorizontal size={18} color="white" strokeWidth={2} />
       </button>
+      </div>
     </form>
   )
 }

@@ -405,7 +405,7 @@ export default function ChatPage() {
                       className="flex-1 py-2 text-center text-caption font-medium active:opacity-60"
                       style={{ color: 'var(--color-accent)' }}
                     >
-                      전체 보기 →
+                      문법·문화 더 보기
                     </button>
                     {msg.data.card_id && (
                       <>
@@ -413,9 +413,9 @@ export default function ChatPage() {
                         <button
                           onClick={() => router.push('/deck')}
                           className="flex-1 py-2 text-center text-caption font-medium active:opacity-60"
-                          style={{ color: 'var(--color-success-text)' }}
+                          style={{ color: 'var(--color-success)' }}
                         >
-                          💾 내 덱
+                          내 카드
                         </button>
                       </>
                     )}
